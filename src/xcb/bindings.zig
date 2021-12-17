@@ -16,7 +16,28 @@ pub const Defines = struct {
 };
 
 pub const Connection = xcb_connection_t;
-pub const Setup = opaque {};
+pub const Setup = extern struct {
+    status: u8,
+    pad0: u8,
+    protocol_major_version: u16,
+    protocol_minor_version: u16,
+    length: u16,
+    release_number: u32,
+    resource_id_base: u32,
+    resource_id_mask: u32,
+    motion_buffer_size: u32,
+    vendor_len: u16,
+    maximum_request_length: u16,
+    roots_len: u8,
+    pixmap_formats_len: u8,
+    image_byte_order: u8,
+    bitmap_format_bit_order: u8,
+    bitmap_format_scanline_unit: u8,
+    bitmap_format_scanline_pad: u8,
+    min_keycode: KeyCode,
+    max_keycode: KeyCode,
+    pad1: [4]u8,
+};
 
 pub const SetupIterator = extern struct {
     data: ?*Setup,
@@ -110,6 +131,7 @@ pub const GenericEvent = extern struct {
 
 pub const Timestamp = u32;
 pub const KeyCode = u8;
+pub const KeySym = u32;
 
 pub const KeyPressEvent = struct {
     response_type: u8,
@@ -210,6 +232,16 @@ pub const QueryKeymapReply = extern struct {
     sequence: u16,
     length: u32,
     keys: [32]u8,
+};
+
+pub const KeyboardMappingCookie = VoidCookie;
+
+pub const KeyboardMappingReply = extern struct {
+    response_type: u8,
+    keysyms_per_keycode: u8,
+    sequence: u16,
+    length: u32,
+    pad0: [24]u8,
 };
 
 extern "xcb" fn xcb_connect(displayname: [*]const u8, screenp: ?*c_int) ?*Connection;
@@ -385,4 +417,19 @@ pub fn queryKeymap(c: *Connection) QueryKeymapCookie {
 extern "xcb" fn xcb_query_keymap_reply(c: *Connection, cookie: QueryKeymapCookie, e: ?**GenericError) *QueryKeymapReply;
 pub fn queryKeymapReply(c: *Connection, cookie: QueryKeymapCookie, e: ?**GenericError) *QueryKeymapReply {
     return xcb_query_keymap_reply(c, cookie, e);
+}
+
+extern "xcb" fn xcb_get_keyboard_mapping(c: *Connection, first_keycode: KeyCode, count: u8) KeyboardMappingCookie;
+pub fn getKeyboardMapping(c: *Connection, first_keycode: KeyCode, count: u8) KeyboardMappingCookie {
+    return xcb_get_keyboard_mapping(c, first_keycode, count);
+}
+
+extern "xcb" fn xcb_get_keyboard_mapping_reply(c: *Connection, cookie: KeyboardMappingCookie, e: ?**GenericError) *KeyboardMappingReply;
+pub fn getKeyboardMappingReply(c: *Connection, cookie: KeyboardMappingCookie, e: ?**GenericError) *KeyboardMappingReply {
+    return xcb_get_keyboard_mapping_reply(c, cookie, e);
+}
+
+extern "xcb" fn xcb_get_keyboard_mapping_keysyms(r: *const KeyboardMappingReply) [*]KeySym;
+pub fn getKeyboardMappingKeysyms(r: *const KeyboardMappingReply) [*]KeySym {
+    return xcb_get_keyboard_mapping_keysyms(r);
 }

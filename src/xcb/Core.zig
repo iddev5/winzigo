@@ -5,6 +5,7 @@ const xcb = @import("bindings.zig");
 const Window = @import("Window.zig");
 
 connection: *xcb.Connection,
+setup: *xcb.Setup,
 screen: *xcb.Screen,
 window: *Window,
 wm_protocols: *xcb.InternAtomReply,
@@ -14,8 +15,9 @@ pub fn init() !Core {
     var core: Core = undefined;
 
     core.connection = try xcb.connect("", null);
+    core.setup = try xcb.getSetup(core.connection);
 
-    const screen_iter = xcb.setupRootsIterator(try xcb.getSetup(core.connection));
+    const screen_iter = xcb.setupRootsIterator(core.setup);
     core.screen = screen_iter.data.?;
 
     const wm_protocols_atom = xcb.internAtom(core.connection, true, "WM_PROTOCOLS".len, "WM_PROTOCOLS");
@@ -31,6 +33,8 @@ pub fn init() !Core {
 }
 
 pub fn deinit(core: *Core) void {
+    std.c.free(core.wm_protocols);
+    std.c.free(core.wm_delete_window);
     xcb.disconnect(core.connection);
 }
 
@@ -96,6 +100,15 @@ inline fn toScrollDir(but: u8) ScrollDir {
         5 => .down,
         else => unreachable,
     };
+}
+
+inline fn getKeysym(core: *Core, keycode: u8) xcb.KeySym {
+    const keyboard_mapping_req = xcb.getKeyboardMapping(core.connection, keycode, 1);
+    var keyboard_mapping = xcb.getKeyboardMappingReply(core.connection, keyboard_mapping_req, null);
+    defer std.c.free(keyboard_mapping);
+
+    const keysyms = xcb.getKeyboardMappingKeysyms(keyboard_mapping);
+    return keysyms[0];
 }
 
 fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
