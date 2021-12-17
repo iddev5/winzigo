@@ -9,6 +9,10 @@ pub const Defines = struct {
         String = 31,
         WmName = 39,
     };
+    pub const Config = enum(u32) {
+        WindowWidth = 4,
+        WindowHeight = 8,
+    };
 };
 
 pub const Connection = xcb_connection_t;
@@ -299,6 +303,21 @@ extern "xcb" fn xcb_change_window_attributes(
 ) VoidCookie;
 pub fn changeWindowAttributes(c: *Connection, window: Window, value_mask: u32, value_list: []const u32) VoidCookie {
     return xcb_change_window_attributes(c, window, value_mask, value_list.ptr);
+}
+
+extern "xcb" fn xcb_configure_window(
+    c: *Connection,
+    window: Window,
+    value_mask: u16,
+    value_list: ?*const c_void,
+) VoidCookie;
+pub fn configureWindow(
+    c: *Connection,
+    window: Window,
+    value_mask: u16,
+    value_list: ?*const c_void,
+) VoidCookie {
+    return xcb_configure_window(c, window, value_mask, value_list);
 }
 
 extern "xcb" fn xcb_change_property(

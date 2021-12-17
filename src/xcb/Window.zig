@@ -27,18 +27,18 @@ pub fn init(core: *Core, info: types.WindowInfo) Window {
         0,
         null,
     );
-    
+
     var value = @enumToInt(xcb.EventMask.KeyPress);
     value |= @enumToInt(xcb.EventMask.KeyRelease);
     value |= @enumToInt(xcb.EventMask.ButtonPress);
     value |= @enumToInt(xcb.EventMask.ButtonRelease);
     value |= @enumToInt(xcb.EventMask.PointerMotion);
-    
+
     _ = xcb.changeWindowAttributes(
         core.connection,
         self.window,
         @enumToInt(xcb.Cw.EventMask),
-        &[_]u32{ value },
+        &[_]u32{value},
     );
 
     _ = xcb.mapWindow(core.connection, self.window);
@@ -62,5 +62,15 @@ pub fn setTitle(window: *Window, title: []const u8) void {
         @bitSizeOf(u8),
         @intCast(u32, title.len),
         @ptrCast(*const c_void, title),
+    );
+}
+
+pub fn setSize(window: *Window, width: u16, height: u16) void {
+    const values: []u16 = &.{ width, height };
+    _ = xcb.configureWindow(
+        window.core.connection,
+        window.window,
+        @enumToInt(xcb.Defines.Config.WindowWidth) | @enumToInt(xcb.Defines.Config.WindowHeight),
+        @ptrCast(*c_void, values),
     );
 }
