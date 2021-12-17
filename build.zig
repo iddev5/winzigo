@@ -2,6 +2,7 @@ const std = @import("std");
 
 const examples = .{
     "events",
+    "window",
 };
 
 pub fn build(b: *std.build.Builder) void {
