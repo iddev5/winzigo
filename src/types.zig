@@ -36,6 +36,17 @@ pub const Key = enum(u8) {
     x,
     y,
     z,
+    zero,
+    one,
+    two,
+    three,
+    four,
+    five,
+    six,
+    seven,
+    eight,
+    nine,
+    ten,
     unknown,
 };
 
