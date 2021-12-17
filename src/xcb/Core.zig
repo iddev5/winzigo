@@ -74,6 +74,7 @@ pub fn waitEvent(core: *Core) ?Event {
 
 const ButtonType = types.ButtonType;
 const ScrollDir = types.ScrollDir;
+const Key = types.Key;
 
 pub const Event = struct {
     window: *Window,
@@ -108,7 +109,41 @@ inline fn getKeysym(core: *Core, keycode: u8) xcb.KeySym {
     defer std.c.free(keyboard_mapping);
 
     const keysyms = xcb.getKeyboardMappingKeysyms(keyboard_mapping);
-    return keysyms[0];
+    return keysyms[1];
+}
+
+const xk = @import("keys.zig");
+
+inline fn toKey(core: *Core, keycode: u8) Key {
+    return switch (core.getKeysym(keycode)) {
+        xk.XK_A => .a,
+        xk.XK_B => .b,
+        xk.XK_C => .c,
+        xk.XK_D => .d,
+        xk.XK_E => .e,
+        xk.XK_F => .f,
+        xk.XK_G => .g,
+        xk.XK_H => .h,
+        xk.XK_I => .i,
+        xk.XK_J => .j,
+        xk.XK_K => .k,
+        xk.XK_L => .l,
+        xk.XK_M => .m,
+        xk.XK_N => .m,
+        xk.XK_O => .o,
+        xk.XK_P => .p,
+        xk.XK_Q => .q,
+        xk.XK_R => .r,
+        xk.XK_S => .s,
+        xk.XK_T => .t,
+        xk.XK_U => .u,
+        xk.XK_V => .v,
+        xk.XK_W => .w,
+        xk.XK_X => .x,
+        xk.XK_Y => .y,
+        xk.XK_Z => .z,
+        else => .unknown,
+    };
 }
 
 fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
@@ -118,7 +153,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 const kp = @ptrCast(*xcb.KeyPressEvent, ev);
                 return Event{
                     .window = core.window,
-                    .ev = .{ .key_press = .{ .scancode = kp.detail } },
+                    .ev = .{ .key_press = .{ .key = core.toKey(kp.detail) } },
                 };
             },
             .KeyRelease => {
@@ -128,7 +163,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 const kp = @ptrCast(*xcb.KeyReleaseEvent, ev);
                 return Event{
                     .window = core.window,
-                    .ev = .{ .key_release = .{ .scancode = kp.detail } },
+                    .ev = .{ .key_release = .{ .key = core.toKey(kp.detail) } },
                 };
             },
             .ButtonPress => {

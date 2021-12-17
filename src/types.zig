@@ -9,12 +9,42 @@ pub const ScrollDir = enum(u8) {
     down,
 };
 
+pub const Key = enum(u8) {
+    a,
+    b,
+    c,
+    d,
+    e,
+    f,
+    g,
+    h,
+    i,
+    j,
+    k,
+    l,
+    m,
+    n,
+    o,
+    p,
+    q,
+    r,
+    s,
+    t,
+    u,
+    v,
+    w,
+    x,
+    y,
+    z,
+    unknown,
+};
+
 pub const Event = union(enum) {
     key_press: struct {
-        scancode: u8,
+        key: Key,
     },
     key_release: struct {
-        scancode: u8,
+        key: Key,
     },
     button_press: struct {
         button: ButtonType,

@@ -13,10 +13,10 @@ pub fn main() anyerror!void {
         if (core.pollEvent()) |event| {
             switch (event.ev) {
                 .key_press => |ev| {
-                    std.log.info("key pressed {}", .{ev.scancode});
+                    std.log.info("key pressed {s}", .{@tagName(ev.key)});
                 },
                 .key_release => |ev| {
-                    std.log.info("key released {}", .{ev.scancode});
+                    std.log.info("key released {s}", .{@tagName(ev.key)});
                 },
                 .button_press => |ev| {
                     std.log.info("button pressed {s}", .{@tagName(ev.button)});
