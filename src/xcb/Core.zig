@@ -72,21 +72,22 @@ pub fn waitEvent(core: *Core) ?Event {
     return core.handleEvent(event);
 }
 
-const ButtonType = types.ButtonType;
-const ScrollDir = types.ScrollDir;
-const Key = types.Key;
-
 pub const Event = struct {
     window: *Window,
     ev: types.Event,
 };
 
-inline fn toButtonType(but: u8) ButtonType {
+const Button = types.Button;
+const ScrollDir = types.ScrollDir;
+const Key = types.Key;
+
+inline fn translateButton(core: *Core, but: u8) Button {
     // Note: xcb headers are docs seem to be confusing here
     // xproto.h mentions code 2 to be right and 3 to be middle.
     // But in practice 2 is middle and 3 is right (confusing!)
     //
     // This has also been confirmed with glfw enum IDs
+    _ = core;
     return switch (but) {
         1 => .left,
         2 => .middle,
@@ -95,7 +96,8 @@ inline fn toButtonType(but: u8) ButtonType {
     };
 }
 
-inline fn toScrollDir(but: u8) ScrollDir {
+inline fn translateScrollDir(core: *Core, but: u8) ScrollDir {
+    _ = core;
     return switch (but) {
         4 => .up,
         5 => .down,
@@ -103,19 +105,15 @@ inline fn toScrollDir(but: u8) ScrollDir {
     };
 }
 
-inline fn getKeysym(core: *Core, keycode: u8) xcb.KeySym {
+const xk = @import("keys.zig");
+
+inline fn translateKey(core: *Core, keycode: u8) Key {
     const keyboard_mapping_req = xcb.getKeyboardMapping(core.connection, keycode, 1);
     var keyboard_mapping = xcb.getKeyboardMappingReply(core.connection, keyboard_mapping_req, null);
     defer std.c.free(keyboard_mapping);
 
     const keysyms = xcb.getKeyboardMappingKeysyms(keyboard_mapping);
-    return keysyms[1];
-}
-
-const xk = @import("keys.zig");
-
-inline fn toKey(core: *Core, keycode: u8) Key {
-    return switch (core.getKeysym(keycode)) {
+    return switch (keysyms[1]) {
         xk.XK_A => .a,
         xk.XK_B => .b,
         xk.XK_C => .c,
@@ -153,7 +151,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 const kp = @ptrCast(*xcb.KeyPressEvent, ev);
                 return Event{
                     .window = core.window,
-                    .ev = .{ .key_press = .{ .key = core.toKey(kp.detail) } },
+                    .ev = .{ .key_press = .{ .key = core.translateKey(kp.detail) } },
                 };
             },
             .KeyRelease => {
@@ -163,7 +161,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 const kp = @ptrCast(*xcb.KeyReleaseEvent, ev);
                 return Event{
                     .window = core.window,
-                    .ev = .{ .key_release = .{ .key = core.toKey(kp.detail) } },
+                    .ev = .{ .key_release = .{ .key = core.translateKey(kp.detail) } },
                 };
             },
             .ButtonPress => {
@@ -171,11 +169,11 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 switch (bp.detail) {
                     1, 2, 3 => return Event{
                         .window = core.window,
-                        .ev = .{ .button_press = .{ .button = toButtonType(bp.detail) } },
+                        .ev = .{ .button_press = .{ .button = core.translateButton(bp.detail) } },
                     },
                     4, 5 => return Event{
                         .window = core.window,
-                        .ev = .{ .mouse_scroll = .{ .scroll_dir = toScrollDir(bp.detail) } },
+                        .ev = .{ .mouse_scroll = .{ .scroll_dir = core.translateScrollDir(bp.detail) } },
                     },
                     else => {},
                 }
@@ -185,7 +183,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 switch (br.detail) {
                     1, 2, 3 => return Event{
                         .window = core.window,
-                        .ev = .{ .button_release = .{ .button = toButtonType(br.detail) } },
+                        .ev = .{ .button_release = .{ .button = core.translateButton(br.detail) } },
                     },
                     else => {},
                 }

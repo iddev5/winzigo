@@ -1,4 +1,4 @@
-pub const ButtonType = enum(u8) {
+pub const Button = enum(u8) {
     left,
     right,
     middle,
@@ -47,10 +47,10 @@ pub const Event = union(enum) {
         key: Key,
     },
     button_press: struct {
-        button: ButtonType,
+        button: Button,
     },
     button_release: struct {
-        button: ButtonType,
+        button: Button,
     },
     mouse_scroll: struct {
         scroll_dir: ScrollDir,
