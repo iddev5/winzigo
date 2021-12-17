@@ -33,7 +33,7 @@ pub const Event = union(enum) {
 };
 
 pub const WindowInfo = struct {
-    title: ?[]const u8,
+    title: ?[]const u8 = null,
     width: u16 = 256,
     height: u16 = 256,
 };
