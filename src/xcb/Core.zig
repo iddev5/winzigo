@@ -9,6 +9,7 @@ screen: *xcb.Screen,
 window: *Window,
 wm_protocols: *xcb.InternAtomReply,
 wm_delete_window: *xcb.InternAtomReply,
+key_states: [std.meta.fields(Key).len]u8,
 
 pub fn init() !Core {
     var core: Core = undefined;
@@ -56,6 +57,7 @@ pub fn createWindow(core: *Core, info: types.WindowInfo) Window {
 }
 
 pub fn pollEvent(core: *Core) ?Event {
+    std.mem.set(u8, &core.key_states, 0);
     _ = xcb.flush(core.connection);
     var event = xcb.pollForEvent(core.connection);
     defer if (event) |ev| std.c.free(ev);
@@ -64,11 +66,16 @@ pub fn pollEvent(core: *Core) ?Event {
 }
 
 pub fn waitEvent(core: *Core) ?Event {
+    std.mem.set(u8, &core.key_states, 0);
     _ = xcb.flush(core.connection);
     var event = xcb.waitForEvent(core.connection);
     defer if (event) |ev| std.c.free(ev);
 
     return core.handleEvent(event);
+}
+
+pub fn getKeyState(core: *Core, key: Key) bool {
+    return core.key_states[@enumToInt(key)] == 1;
 }
 
 const types = @import("../main.zig");
@@ -247,9 +254,11 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
         switch (xcb.eventResponse(ev)) {
             .KeyPress => {
                 const kp = @ptrCast(*xcb.KeyPressEvent, ev);
+                const key = core.translateKey(kp.detail);
+                core.key_states[@enumToInt(key)] = 1;
                 return Event{
                     .window = xcbToWindow(core.window),
-                    .ev = .{ .key_press = .{ .key = core.translateKey(kp.detail) } },
+                    .ev = .{ .key_press = .{ .key = key } },
                 };
             },
             .KeyRelease => {

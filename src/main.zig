@@ -198,6 +198,10 @@ pub const Core = struct {
     pub fn waitEvent(core: *Core) ?Event {
         return core.internal.waitEvent();
     }
+
+    pub fn getKeyState(core: *Core, key: Key) bool {
+        return core.internal.getKeyState(key);
+    }
 };
 
 pub const Window = struct {

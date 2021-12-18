@@ -13,6 +13,7 @@ pub fn main() anyerror!void {
         if (core.pollEvent()) |event| {
             switch (event.ev) {
                 .key_press => |ev| {
+                    if (ev.key == .escape) is_running = false;
                     std.log.info("key pressed {s}", .{@tagName(ev.key)});
                 },
                 .key_release => |ev| {
@@ -36,6 +37,9 @@ pub fn main() anyerror!void {
                 },
             }
         }
+
+        std.log.info("A State: {}", .{core.getKeyState(.a)});
+        std.os.nanosleep(0, 16000000);
     }
     std.log.info("All your queued events are belong to us.", .{});
 }
