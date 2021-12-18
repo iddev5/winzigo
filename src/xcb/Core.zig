@@ -206,7 +206,7 @@ inline fn translateKey(core: *Core, keycode: u8) Key {
         xk.XK_Control_L => .left_control,
         xk.XK_Control_R => .right_control,
         xk.XK_Meta_L, xk.XK_Alt_L => .left_alt,
-        xk.XK_Meta_R, xk.XK_Alt_R => .right_alt,
+        xk.XK_Meta_R, xk.XK_Alt_R, xk.XK_Mode_switch => .right_alt,
         xk.XK_Super_L => .left_super,
         xk.XK_Super_R => .right_super,
         xk.XK_Menu => .menu,
