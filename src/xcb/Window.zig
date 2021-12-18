@@ -3,7 +3,7 @@ const Window = @This();
 const std = @import("std");
 const xcb = @import("bindings.zig");
 const Core = @import("Core.zig");
-const types = @import("../types.zig");
+const types = @import("../main.zig");
 
 core: *Core,
 window: u32 = undefined,

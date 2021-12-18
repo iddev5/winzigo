@@ -53,7 +53,7 @@ pub const Key = enum(u8) {
 };
 
 pub const Event = struct {
-    window: Window,
+    window: *Window,
     ev: union(enum) {
         key_press: struct {
             key: Key,
@@ -106,11 +106,11 @@ pub const Core = struct {
         return .{ .internal = core.internal.createWindow(info) };
     }
     
-    pub fn pollEvent(core: *Core) ?Event {
+    pub fn pollEvent(core: *Core) ?xcb.Event {
         return core.internal.pollEvent();
     }
     
-    pub fn waitEvent(core: *Core) ?Event {
+    pub fn waitEvent(core: *Core) ?xcb.Event {
         return core.internal.waitEvent();
     }
 };
@@ -120,10 +120,6 @@ pub const Window = struct {
   
     pub fn init(info: WindowInfo) Window {
         return .{ .internal = WindowType().init(info) };
-    }
-    
-    pub fn initFromInternal(internal: WindowType()) Window {
-        return .{ .internal = internal };
     }
     
     pub fn deinit(window: *Window) void {

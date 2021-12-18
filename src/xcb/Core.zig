@@ -1,8 +1,7 @@
 const Core = @This();
 const std = @import("std");
-const types = @import("../types.zig");
 const xcb = @import("bindings.zig");
-const Window = @import("Window.zig");
+pub const Window = @import("Window.zig");
 
 connection: *xcb.Connection,
 setup: *xcb.Setup,
@@ -72,14 +71,16 @@ pub fn waitEvent(core: *Core) ?Event {
     return core.handleEvent(event);
 }
 
-pub const Event = struct {
-    window: *Window,
-    ev: types.Event,
-};
+const types = @import("../main.zig");
 
+const Event = types.Event;
 const Button = types.Button;
 const ScrollDir = types.ScrollDir;
 const Key = types.Key;
+
+inline fn xcbToWindow(window: *Window) types.Window {
+    return types.Window.initFromInternal(window.*);
+}
 
 inline fn translateButton(core: *Core, but: u8) Button {
     // Note: xcb headers are docs seem to be confusing here
@@ -160,7 +161,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
             .KeyPress => {
                 const kp = @ptrCast(*xcb.KeyPressEvent, ev);
                 return Event{
-                    .window = core.window,
+                    .window = xcbToWindow(core.window),
                     .ev = .{ .key_press = .{ .key = core.translateKey(kp.detail) } },
                 };
             },
@@ -170,7 +171,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 // actually released. Solve this using delta time
                 const kp = @ptrCast(*xcb.KeyReleaseEvent, ev);
                 return Event{
-                    .window = core.window,
+                    .window = xcbToWindow(core.window),
                     .ev = .{ .key_release = .{ .key = core.translateKey(kp.detail) } },
                 };
             },
@@ -178,11 +179,11 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 const bp = @ptrCast(*xcb.ButtonPressEvent, ev);
                 switch (bp.detail) {
                     1, 2, 3 => return Event{
-                        .window = core.window,
+                        .window = xcbToWindow(core.window),
                         .ev = .{ .button_press = .{ .button = core.translateButton(bp.detail) } },
                     },
                     4, 5 => return Event{
-                        .window = core.window,
+                        .window = xcbToWindow(core.window),
                         .ev = .{ .mouse_scroll = .{ .scroll_dir = core.translateScrollDir(bp.detail) } },
                     },
                     else => {},
@@ -192,7 +193,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 const br = @ptrCast(*xcb.ButtonReleaseEvent, ev);
                 switch (br.detail) {
                     1, 2, 3 => return Event{
-                        .window = core.window,
+                        .window = xcbToWindow(core.window),
                         .ev = .{ .button_release = .{ .button = core.translateButton(br.detail) } },
                     },
                     else => {},
@@ -201,7 +202,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
             .MotionNotify => {
                 const mn = @ptrCast(*xcb.MotionNotifyEvent, ev);
                 return Event{
-                    .window = core.window,
+                    .window = xcbToWindow(core.window),
                     .ev = .{ .mouse_motion = .{
                         .x = @intCast(u32, mn.event_x),
                         .y = @intCast(u32, mn.event_y),
@@ -212,7 +213,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 const cm = @ptrCast(*xcb.ClientMessageEvent, event);
                 if (cm.data.data32[0] == core.wm_delete_window.atom) {
                     return Event{
-                        .window = core.window,
+                        .window = xcbToWindow(core.window),
                         .ev = .{ .quit = .{} },
                     };
                 }
