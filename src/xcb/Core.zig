@@ -9,7 +9,6 @@ screen: *xcb.Screen,
 window: *Window,
 wm_protocols: *xcb.InternAtomReply,
 wm_delete_window: *xcb.InternAtomReply,
-key_states: [std.meta.fields(Key).len]u8,
 
 pub fn init() !Core {
     var core: Core = undefined;
@@ -57,7 +56,6 @@ pub fn createWindow(core: *Core, info: types.WindowInfo) Window {
 }
 
 pub fn pollEvent(core: *Core) ?Event {
-    std.mem.set(u8, &core.key_states, 0);
     _ = xcb.flush(core.connection);
     var event = xcb.pollForEvent(core.connection);
     defer if (event) |ev| std.c.free(ev);
@@ -66,7 +64,6 @@ pub fn pollEvent(core: *Core) ?Event {
 }
 
 pub fn waitEvent(core: *Core) ?Event {
-    std.mem.set(u8, &core.key_states, 0);
     _ = xcb.flush(core.connection);
     var event = xcb.waitForEvent(core.connection);
     defer if (event) |ev| std.c.free(ev);
@@ -75,7 +72,42 @@ pub fn waitEvent(core: *Core) ?Event {
 }
 
 pub fn getKeyState(core: *Core, key: Key) bool {
-    return core.key_states[@enumToInt(key)] == 1;
+    // Get all key states
+    const cookie = xcb.queryKeymap(core.connection);
+    const key_states = xcb.queryKeymapReply(core.connection, cookie, null);
+
+    // Convert key to keysym
+    const keysym: u32 = switch (key) {
+        .a => xk.XK_a,
+        .b => xk.XK_b,
+        .c => xk.XK_c,
+        .d => xk.XK_d,
+        .e => xk.XK_e,
+        .f => xk.XK_f,
+        .g => xk.XK_g,
+        .h => xk.XK_h,
+        else => 0,
+    };
+
+    // Get keysyms from keycode
+    const keyboard_mapping_req = xcb.getKeyboardMapping(core.connection, core.setup.min_keycode, core.setup.max_keycode - core.setup.min_keycode + 1);
+    var keyboard_mapping = xcb.getKeyboardMappingReply(core.connection, keyboard_mapping_req, null);
+    defer std.c.free(keyboard_mapping);
+
+    const keysyms = xcb.getKeyboardMappingKeysyms(keyboard_mapping);
+
+    // Convert keysym to keycode
+    var keycode: u8 = 0;
+    var i: usize = 0;
+    while (i < 256) : (i += 1) {
+        if (keysyms[i * keyboard_mapping.keysyms_per_keycode] == keysym) {
+            keycode = @intCast(u8, i + core.setup.min_keycode);
+            break;
+        }
+    }
+
+    // Get the specific key state from keycode
+    return key_states.keys[keycode / 8] & (@intCast(u8, 1) << @intCast(u3, (keycode % 8))) != 0;
 }
 
 const types = @import("../main.zig");
@@ -121,6 +153,7 @@ inline fn translateKey(core: *Core, keycode: u8) Key {
     defer std.c.free(keyboard_mapping);
 
     const keysyms = xcb.getKeyboardMappingKeysyms(keyboard_mapping);
+
     return switch (keysyms[0]) {
         xk.XK_a => .a,
         xk.XK_b => .b,
@@ -254,11 +287,9 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
         switch (xcb.eventResponse(ev)) {
             .KeyPress => {
                 const kp = @ptrCast(*xcb.KeyPressEvent, ev);
-                const key = core.translateKey(kp.detail);
-                core.key_states[@enumToInt(key)] = 1;
                 return Event{
                     .window = xcbToWindow(core.window),
-                    .ev = .{ .key_press = .{ .key = key } },
+                    .ev = .{ .key_press = .{ .key = core.translateKey(kp.detail) } },
                 };
             },
             .KeyRelease => {
