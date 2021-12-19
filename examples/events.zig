@@ -38,7 +38,7 @@ pub fn main() anyerror!void {
             }
         }
 
-        std.log.info("A State: {}", .{core.getKeyState(.a)});
+        std.log.info("A State: {}", .{core.getKeyDown(.a)});
         std.os.nanosleep(0, 16000000);
     }
     std.log.info("All your queued events are belong to us.", .{});

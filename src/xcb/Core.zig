@@ -71,7 +71,7 @@ pub fn waitEvent(core: *Core) ?Event {
     return core.handleEvent(event);
 }
 
-pub fn getKeyState(core: *Core, key: Key) bool {
+pub fn getKeyDown(core: *Core, key: Key) bool {
     // Get all key states
     const cookie = xcb.queryKeymap(core.connection);
     const key_states = xcb.queryKeymapReply(core.connection, cookie, null);
