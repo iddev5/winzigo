@@ -72,22 +72,8 @@ pub fn waitEvent(core: *Core) ?Event {
 }
 
 pub fn getKeyDown(core: *Core, key: Key) bool {
-    // Get all key states
-    const cookie = xcb.queryKeymap(core.connection);
-    const key_states = xcb.queryKeymapReply(core.connection, cookie, null);
-
     // Convert key to keysym
-    const keysym: u32 = switch (key) {
-        .a => xk.XK_a,
-        .b => xk.XK_b,
-        .c => xk.XK_c,
-        .d => xk.XK_d,
-        .e => xk.XK_e,
-        .f => xk.XK_f,
-        .g => xk.XK_g,
-        .h => xk.XK_h,
-        else => 0,
-    };
+    const keysym: u32 = core.translateKey(key);
 
     // Get keysyms from keycode
     const keyboard_mapping_req = xcb.getKeyboardMapping(core.connection, core.setup.min_keycode, core.setup.max_keycode - core.setup.min_keycode + 1);
@@ -105,6 +91,10 @@ pub fn getKeyDown(core: *Core, key: Key) bool {
             break;
         }
     }
+
+    // Get all key states
+    const cookie = xcb.queryKeymap(core.connection);
+    const key_states = xcb.queryKeymapReply(core.connection, cookie, null);
 
     // Get the specific key state from keycode
     return key_states.keys[keycode / 8] & (@intCast(u8, 1) << @intCast(u3, (keycode % 8))) != 0;
@@ -147,7 +137,7 @@ inline fn translateScrollDir(core: *Core, but: u8) ScrollDir {
 
 const xk = @import("keys.zig");
 
-inline fn translateKey(core: *Core, keycode: u8) Key {
+inline fn translateKeycode(core: *Core, keycode: u8) Key {
     const keyboard_mapping_req = xcb.getKeyboardMapping(core.connection, keycode, 1);
     var keyboard_mapping = xcb.getKeyboardMappingReply(core.connection, keyboard_mapping_req, null);
     defer std.c.free(keyboard_mapping);
@@ -282,6 +272,136 @@ inline fn translateKey(core: *Core, keycode: u8) Key {
     };
 }
 
+inline fn translateKey(core: *Core, key: Key) u32 {
+    _ = core;
+    return switch (key) {
+        .a => xk.XK_a,
+        .b => xk.XK_b,
+        .c => xk.XK_c,
+        .d => xk.XK_d,
+        .e => xk.XK_e,
+        .f => xk.XK_f,
+        .g => xk.XK_g,
+        .h => xk.XK_h,
+        .i => xk.XK_i,
+        .j => xk.XK_j,
+        .k => xk.XK_k,
+        .l => xk.XK_l,
+        .m => xk.XK_m,
+        .n => xk.XK_n,
+        .o => xk.XK_o,
+        .p => xk.XK_p,
+        .q => xk.XK_q,
+        .r => xk.XK_r,
+        .s => xk.XK_s,
+        .t => xk.XK_t,
+        .u => xk.XK_u,
+        .v => xk.XK_v,
+        .w => xk.XK_w,
+        .x => xk.XK_x,
+        .y => xk.XK_y,
+        .z => xk.XK_z,
+
+        .zero => xk.XK_0,
+        .one => xk.XK_1,
+        .two => xk.XK_2,
+        .three => xk.XK_3,
+        .four => xk.XK_4,
+        .five => xk.XK_5,
+        .six => xk.XK_6,
+        .seven => xk.XK_7,
+        .eight => xk.XK_8,
+        .nine => xk.XK_9,
+
+        .f1 => xk.XK_F1,
+        .f2 => xk.XK_F2,
+        .f3 => xk.XK_F3,
+        .f4 => xk.XK_F4,
+        .f5 => xk.XK_F5,
+        .f6 => xk.XK_F6,
+        .f7 => xk.XK_F7,
+        .f8 => xk.XK_F8,
+        .f9 => xk.XK_F9,
+        .f10 => xk.XK_F10,
+        .f11 => xk.XK_F11,
+        .f12 => xk.XK_F12,
+        .f13 => xk.XK_F13,
+        .f14 => xk.XK_F14,
+        .f15 => xk.XK_F15,
+        .f16 => xk.XK_F16,
+        .f17 => xk.XK_F17,
+        .f18 => xk.XK_F18,
+        .f19 => xk.XK_F19,
+        .f20 => xk.XK_F20,
+        .f21 => xk.XK_F21,
+        .f22 => xk.XK_F22,
+        .f23 => xk.XK_F23,
+        .f24 => xk.XK_F24,
+        .f25 => xk.XK_F25,
+
+        .kp_divide => xk.XK_KP_Divide,
+        .kp_multiply => xk.XK_KP_Multiply,
+        .kp_subtract => xk.XK_KP_Subtract,
+        .kp_add => xk.XK_KP_Add,
+
+        .kp_0 => xk.XK_KP_Insert,
+        .kp_1 => xk.XK_KP_End,
+        .kp_2 => xk.XK_KP_Down,
+        .kp_3 => xk.XK_KP_Page_Down,
+        .kp_4 => xk.XK_KP_Left,
+        .kp_5 => xk.XK_KP_Begin,
+        .kp_6 => xk.XK_KP_Right,
+        .kp_7 => xk.XK_KP_Home,
+        .kp_8 => xk.XK_KP_Up,
+        .kp_9 => xk.XK_KP_Page_Up,
+        .kp_decimal => xk.XK_KP_Delete,
+        .kp_equal => xk.XK_KP_Equal,
+        .kp_enter => xk.XK_KP_Enter,
+
+        .@"return" => xk.XK_Return,
+        .escape => xk.XK_Escape,
+        .tab => xk.XK_Tab,
+        .left_shift => xk.XK_Shift_L,
+        .right_shift => xk.XK_Shift_R,
+        .left_control => xk.XK_Control_L,
+        .right_control => xk.XK_Control_R,
+        .left_alt => xk.XK_Alt_L,
+        .right_alt => xk.XK_Alt_R,
+        .left_super => xk.XK_Super_L,
+        .right_super => xk.XK_Super_R,
+        .menu => xk.XK_Menu,
+        .num_lock => xk.XK_Num_Lock,
+        .caps_lock => xk.XK_Caps_Lock,
+        .print => xk.XK_Print,
+        .scroll_lock => xk.XK_Scroll_Lock,
+        .pause => xk.XK_Pause,
+        .delete => xk.XK_Delete,
+        .home => xk.XK_Home,
+        .end => xk.XK_End,
+        .page_up => xk.XK_Page_Up,
+        .page_down => xk.XK_Page_Down,
+        .insert => xk.XK_Insert,
+        .left => xk.XK_Left,
+        .right => xk.XK_Right,
+        .up => xk.XK_Up,
+        .down => xk.XK_Down,
+        .backspace => xk.XK_BackSpace,
+        .space => xk.XK_space,
+        .minus => xk.XK_minus,
+        .equal => xk.XK_equal,
+        .left_bracket => xk.XK_bracketleft,
+        .right_bracket => xk.XK_bracketright,
+        .backslash => xk.XK_backslash,
+        .semicolon => xk.XK_semicolon,
+        .apostrophe => xk.XK_apostrophe,
+        .comma => xk.XK_comma,
+        .period => xk.XK_period,
+        .slash => xk.XK_slash,
+        .grave => xk.XK_grave,
+        .unknown => unreachable,
+    };
+}
+
 fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
     if (event) |ev| {
         switch (xcb.eventResponse(ev)) {
@@ -289,7 +409,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 const kp = @ptrCast(*xcb.KeyPressEvent, ev);
                 return Event{
                     .window = xcbToWindow(core.window),
-                    .ev = .{ .key_press = .{ .key = core.translateKey(kp.detail) } },
+                    .ev = .{ .key_press = .{ .key = core.translateKeycode(kp.detail) } },
                 };
             },
             .KeyRelease => {
@@ -299,7 +419,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 const kp = @ptrCast(*xcb.KeyReleaseEvent, ev);
                 return Event{
                     .window = xcbToWindow(core.window),
-                    .ev = .{ .key_release = .{ .key = core.translateKey(kp.detail) } },
+                    .ev = .{ .key_release = .{ .key = core.translateKeycode(kp.detail) } },
                 };
             },
             .ButtonPress => {
