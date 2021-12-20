@@ -413,13 +413,18 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 };
             },
             .KeyRelease => {
-                // TODO: XServer sometimes return this as KeyRelease + KeyPress pairs
-                // This causes problem because we dont know when the key is
-                // actually released. Solve this using delta time
                 const kp = @ptrCast(*xcb.KeyReleaseEvent, ev);
+                const key = core.translateKeycode(kp.detail);
+
+                if (core.pollEvent()) |next| {
+                    if (next.ev == .key_press and next.ev.key_press.key == key) {
+                        return null;
+                    }
+                }
+
                 return Event{
                     .window = xcbToWindow(core.window),
-                    .ev = .{ .key_release = .{ .key = core.translateKeycode(kp.detail) } },
+                    .ev = .{ .key_release = .{ .key = key } },
                 };
             },
             .ButtonPress => {
