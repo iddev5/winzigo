@@ -10,7 +10,7 @@ pub fn main() anyerror!void {
 
     var is_running: bool = true;
     while (is_running) {
-        if (core.pollEvent()) |event| {
+        while (core.pollEvent()) |event| {
             switch (event.ev) {
                 .key_press => |ev| {
                     if (ev.key == .escape) is_running = false;

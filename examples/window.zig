@@ -13,7 +13,7 @@ pub fn main() anyerror!void {
 
     var is_running: bool = true;
     while (is_running) {
-        if (core.pollEvent()) |event| {
+        while (core.pollEvent()) |event| {
             switch (event.ev) {
                 .quit => |_| {
                     std.log.info("quit", .{});
