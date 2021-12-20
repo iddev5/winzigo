@@ -95,6 +95,7 @@ pub fn getKeyDown(core: *Core, key: Key) bool {
     // Get all key states
     const cookie = xcb.queryKeymap(core.connection);
     const key_states = xcb.queryKeymapReply(core.connection, cookie, null);
+    defer std.c.free(key_states);
 
     // Get the specific key state from keycode
     return key_states.keys[keycode / 8] & (@intCast(u8, 1) << @intCast(u3, (keycode % 8))) != 0;
