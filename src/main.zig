@@ -6,11 +6,6 @@ pub const Button = enum(u8) {
     middle,
 };
 
-pub const ScrollDir = enum(u8) {
-    up,
-    down,
-};
-
 pub const Key = enum(u8) {
     a,
     b,
@@ -153,7 +148,8 @@ pub const Event = struct {
             button: Button,
         },
         mouse_scroll: struct {
-            scroll_dir: ScrollDir,
+            scroll_x: i2,
+            scroll_y: i2,
         },
         mouse_motion: struct {
             x: u32,

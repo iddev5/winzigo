@@ -126,15 +126,6 @@ inline fn translateButton(core: *Core, but: u8) Button {
     };
 }
 
-inline fn translateScrollDir(core: *Core, but: u8) ScrollDir {
-    _ = core;
-    return switch (but) {
-        4 => .up,
-        5 => .down,
-        else => unreachable,
-    };
-}
-
 const xk = @import("keys.zig");
 
 inline fn translateKeycode(core: *Core, keycode: u8) Key {
@@ -436,7 +427,11 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                     },
                     4, 5 => return Event{
                         .window = xcbToWindow(core.window),
-                        .ev = .{ .mouse_scroll = .{ .scroll_dir = core.translateScrollDir(bp.detail) } },
+                        .ev = .{ .mouse_scroll = .{ .scroll_x = 0, .scroll_y = if (bp.detail == 4) 1 else -1 } },
+                    },
+                    6, 7 => return Event{
+                        .window = xcbToWindow(core.window),
+                        .ev = .{ .mouse_scroll = .{ .scroll_x = if (bp.detail == 6) 1 else -1, .scroll_y = 0 } },
                     },
                     else => {},
                 }

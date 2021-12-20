@@ -26,7 +26,7 @@ pub fn main() anyerror!void {
                     std.log.info("button released {s}", .{@tagName(ev.button)});
                 },
                 .mouse_scroll => |ev| {
-                    std.log.info("mouse scroll {s}", .{@tagName(ev.scroll_dir)});
+                    std.log.info("mouse scroll x: {} y: {}", .{ ev.scroll_x, ev.scroll_y });
                 },
                 .mouse_motion => |ev| {
                     std.log.info("mouse pos x: {} y: {}", .{ ev.x, ev.y });
