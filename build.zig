@@ -31,18 +31,16 @@ pub fn build(b: *std.build.Builder) void {
         example.addPackage(lib);
         example.install();
 
+        const make_step = b.step("make-" ++ eg, "Build the " ++ eg ++ " example");
+        make_step.dependOn(&example.install_step.?.step);
+
         const run_cmd = example.run();
         run_cmd.step.dependOn(&example.install_step.?.step);
         if (b.args) |args| {
             run_cmd.addArgs(args);
         }
 
-        const run_step = b.step("run-" ++ eg, "Run the events example");
+        const run_step = b.step("run-" ++ eg, "Run the " ++ eg ++ " example");
         run_step.dependOn(&run_cmd.step);
     }
-    // const exe_tests = b.addTest("src/main.zig");
-    // exe_tests.setBuildMode(mode);
-
-    // const test_step = b.step("test", "Run unit tests");
-    // test_step.dependOn(&exe_tests.step);
 }
