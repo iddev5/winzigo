@@ -447,6 +447,24 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                     else => {},
                 }
             },
+            .FocusIn => {
+                const fi = @ptrCast(*xcb.FocusInEvent, ev);
+                if (fi.mode != .grab and fi.mode != .ungrab) {
+                    return Event{
+                        .window = xcbToWindow(core.window),
+                        .ev = .{ .focus_in = .{} },
+                    };
+                }
+            },
+            .FocusOut => {
+                const fo = @ptrCast(*xcb.FocusOutEvent, ev);
+                if (fo.mode != .grab and fo.mode != .ungrab) {
+                    return Event{
+                        .window = xcbToWindow(core.window),
+                        .ev = .{ .focus_out = .{} },
+                    };
+                }
+            },
             .MotionNotify => {
                 const mn = @ptrCast(*xcb.MotionNotifyEvent, ev);
                 return Event{

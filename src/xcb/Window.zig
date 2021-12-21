@@ -33,6 +33,7 @@ pub fn init(core: *Core, info: types.WindowInfo) Window {
     value |= @enumToInt(xcb.EventMask.ButtonPress);
     value |= @enumToInt(xcb.EventMask.ButtonRelease);
     value |= @enumToInt(xcb.EventMask.PointerMotion);
+    value |= @enumToInt(xcb.EventMask.FocusChange);
 
     _ = xcb.changeWindowAttributes(
         core.connection,

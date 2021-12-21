@@ -31,6 +31,12 @@ pub fn main() anyerror!void {
                 .mouse_motion => |ev| {
                     std.log.info("mouse pos x: {} y: {}", .{ ev.x, ev.y });
                 },
+                .focus_in => |_| {
+                    std.log.info("gained focus", .{});
+                },
+                .focus_out => |_| {
+                    std.log.info("lost focus", .{});
+                },
                 .quit => |_| {
                     std.log.info("quit", .{});
                     is_running = false;

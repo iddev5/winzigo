@@ -155,6 +155,8 @@ pub const Event = struct {
             x: u32,
             y: u32,
         },
+        focus_in: void,
+        focus_out: void,
         quit: void,
     },
 };
