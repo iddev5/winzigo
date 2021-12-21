@@ -362,13 +362,13 @@ extern "xcb" fn xcb_configure_window(
     c: *Connection,
     window: Window,
     value_mask: u16,
-    value_list: ?*const c_void,
+    value_list: ?*const anyopaque,
 ) VoidCookie;
 pub fn configureWindow(
     c: *Connection,
     window: Window,
     value_mask: u16,
-    value_list: ?*const c_void,
+    value_list: ?*const anyopaque,
 ) VoidCookie {
     return xcb_configure_window(c, window, value_mask, value_list);
 }
@@ -381,7 +381,7 @@ extern "xcb" fn xcb_change_property(
     _type: Atom,
     format: u8,
     data_len: u32,
-    data: ?*const c_void,
+    data: ?*const anyopaque,
 ) VoidCookie;
 pub fn changeProperty(
     c: *Connection,
@@ -391,7 +391,7 @@ pub fn changeProperty(
     _type: Atom,
     format: u8,
     data_len: u32,
-    data: ?*const c_void,
+    data: ?*const anyopaque,
 ) VoidCookie {
     return xcb_change_property(c, @enumToInt(mode), window, property, _type, format, data_len, data);
 }

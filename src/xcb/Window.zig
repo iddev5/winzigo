@@ -62,7 +62,7 @@ pub fn setTitle(window: *Window, title: []const u8) void {
         @enumToInt(xcb.Defines.Atom.String),
         @bitSizeOf(u8),
         @intCast(u32, title.len),
-        @ptrCast(*const c_void, title),
+        @ptrCast(*const anyopaque, title),
     );
 }
 
@@ -72,6 +72,6 @@ pub fn setSize(window: *Window, width: u16, height: u16) void {
         window.core.connection,
         window.window,
         @enumToInt(xcb.Defines.Config.WindowWidth) | @enumToInt(xcb.Defines.Config.WindowHeight),
-        @ptrCast(*c_void, values),
+        @ptrCast(*anyopaque, values),
     );
 }
