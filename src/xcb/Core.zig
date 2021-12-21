@@ -470,8 +470,8 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 return Event{
                     .window = xcbToWindow(core.window),
                     .ev = .{ .mouse_motion = .{
-                        .x = @intCast(u32, mn.event_x),
-                        .y = @intCast(u32, mn.event_y),
+                        .x = mn.event_x,
+                        .y = mn.event_y,
                     } },
                 };
             },

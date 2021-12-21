@@ -152,8 +152,8 @@ pub const Event = struct {
             scroll_y: i2,
         },
         mouse_motion: struct {
-            x: u32,
-            y: u32,
+            x: i16,
+            y: i16,
         },
         focus_in: void,
         focus_out: void,
