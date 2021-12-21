@@ -109,6 +109,8 @@ pub const EventMask = enum(u32) {
     KeyRelease = 2,
     ButtonPress = 4,
     ButtonRelease = 8,
+    EnterWindow = 16,
+    LeaveWindow = 32,
     PointerMotion = 64,
     FocusChange = 2097152,
 };
@@ -119,6 +121,8 @@ pub const EventType = enum(u32) {
     ButtonPress = 4,
     ButtonRelease = 5,
     MotionNotify = 6,
+    EnterNotify = 7,
+    LeaveNotify = 8,
     FocusIn = 9,
     FocusOut = 10,
     ClientMessage = 33,
@@ -224,6 +228,25 @@ pub const FocusInEvent = extern struct {
 };
 
 pub const FocusOutEvent = FocusInEvent;
+
+pub const EnterNotifyEvent = extern struct {
+    response_type: u8,
+    detail: u8,
+    sequence: u16,
+    time: Timestamp,
+    root: Window,
+    event: Window,
+    child: Window,
+    root_x: i16,
+    root_y: i16,
+    event_x: i16,
+    event_y: i16,
+    state: u16,
+    mode: u8,
+    same_screen_focus: u8,
+};
+
+pub const LeaveNotifyEvent = EnterNotifyEvent;
 
 pub const Atom = u32;
 

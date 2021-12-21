@@ -465,6 +465,20 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                     };
                 }
             },
+            .EnterNotify => {
+                const en = @ptrCast(*xcb.EnterNotifyEvent, ev);
+                return Event{
+                    .window = xcbToWindow(core.window),
+                    .ev = .{ .mouse_enter = .{ .x = en.event_x, .y = en.event_y } },
+                };
+            },
+            .LeaveNotify => {
+                const ln = @ptrCast(*xcb.LeaveNotifyEvent, ev);
+                return Event{
+                    .window = xcbToWindow(core.window),
+                    .ev = .{ .mouse_leave = .{ .x = ln.event_x, .y = ln.event_y } },
+                };
+            },
             .MotionNotify => {
                 const mn = @ptrCast(*xcb.MotionNotifyEvent, ev);
                 return Event{

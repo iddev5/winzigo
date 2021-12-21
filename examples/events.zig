@@ -31,6 +31,12 @@ pub fn main() anyerror!void {
                 .mouse_motion => |ev| {
                     std.log.info("mouse pos x: {} y: {}", .{ ev.x, ev.y });
                 },
+                .mouse_enter => |ev| {
+                    std.log.info("mouse entered window at x: {} y: {}", .{ ev.x, ev.y });
+                },
+                .mouse_leave => |ev| {
+                    std.log.info("mouse left window at x: {} y: {}", .{ ev.x, ev.y });
+                },
                 .focus_in => |_| {
                     std.log.info("gained focus", .{});
                 },

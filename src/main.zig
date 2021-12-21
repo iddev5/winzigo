@@ -132,6 +132,11 @@ pub const Key = enum(u8) {
     unknown,
 };
 
+const MousePos = struct {
+    x: i16,
+    y: i16,
+};
+
 pub const Event = struct {
     window: Window,
     ev: union(enum) {
@@ -151,10 +156,9 @@ pub const Event = struct {
             scroll_x: i2,
             scroll_y: i2,
         },
-        mouse_motion: struct {
-            x: i16,
-            y: i16,
-        },
+        mouse_motion: MousePos,
+        mouse_enter: MousePos,
+        mouse_leave: MousePos,
         focus_in: void,
         focus_out: void,
         quit: void,
