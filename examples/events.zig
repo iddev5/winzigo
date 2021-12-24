@@ -2,7 +2,7 @@ const std = @import("std");
 const winzigo = @import("winzigo");
 
 pub fn main() anyerror!void {
-    var core = try winzigo.Core.init();
+    var core = try winzigo.init();
     defer core.deinit();
 
     var window = core.createWindow(.{});

@@ -2,7 +2,7 @@ const std = @import("std");
 const winzigo = @import("winzigo");
 
 pub fn main() anyerror!void {
-    var core = try winzigo.Core.init();
+    var core = try winzigo.init();
     defer core.deinit();
 
     var window = core.createWindow(.{});
@@ -25,7 +25,7 @@ pub fn main() anyerror!void {
         }
         std.os.nanosleep(0, 16000000);
     }
-    std.log.info("All your queued events are belong to us.", .{});
+    std.log.info("All your inputs are belong to us.", .{});
 }
 
 test "basic test" {

@@ -1,3 +1,5 @@
+const Core = @This();
+
 const xcb = @import("xcb/Core.zig");
 
 pub const Button = enum(u8) {
@@ -170,6 +172,7 @@ pub const WindowInfo = struct {
     width: u16 = 256,
     height: u16 = 256,
 };
+
 fn CoreType() type {
     return xcb;
 }
@@ -178,33 +181,31 @@ fn WindowType() type {
     return xcb.Window;
 }
 
-pub const Core = struct {
-    internal: CoreType(),
+internal: CoreType(),
 
-    pub fn init() !Core {
-        return Core{ .internal = try CoreType().init() };
-    }
+pub fn init() !Core {
+    return Core{ .internal = try CoreType().init() };
+}
 
-    pub fn deinit(core: *Core) void {
-        core.internal.deinit();
-    }
+pub fn deinit(core: *Core) void {
+    core.internal.deinit();
+}
 
-    pub fn createWindow(core: *Core, info: WindowInfo) Window {
-        return .{ .internal = core.internal.createWindow(info) };
-    }
+pub fn createWindow(core: *Core, info: WindowInfo) Window {
+    return .{ .internal = core.internal.createWindow(info) };
+}
 
-    pub fn pollEvent(core: *Core) ?Event {
-        return core.internal.pollEvent();
-    }
+pub fn pollEvent(core: *Core) ?Event {
+    return core.internal.pollEvent();
+}
 
-    pub fn waitEvent(core: *Core) ?Event {
-        return core.internal.waitEvent();
-    }
+pub fn waitEvent(core: *Core) ?Event {
+    return core.internal.waitEvent();
+}
 
-    pub fn getKeyDown(core: *Core, key: Key) bool {
-        return core.internal.getKeyDown(key);
-    }
-};
+pub fn getKeyDown(core: *Core, key: Key) bool {
+    return core.internal.getKeyDown(key);
+}
 
 pub const Window = struct {
     internal: WindowType(),
