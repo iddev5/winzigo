@@ -1,6 +1,5 @@
 const Core = @This();
-
-const xcb = @import("xcb/Core.zig");
+const builtin = @import("builtin");
 
 pub const Button = enum(u8) {
     left,
@@ -174,11 +173,12 @@ pub const WindowInfo = struct {
 };
 
 fn CoreType() type {
-    return xcb;
+    if (builtin.cpu.arch == .wasm32) return @import("wasm/Core.zig");
+    return @import("xcb/Core.zig");
 }
 
 fn WindowType() type {
-    return xcb.Window;
+    return CoreType().Window;
 }
 
 internal: CoreType(),
