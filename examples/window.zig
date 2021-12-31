@@ -1,28 +1,34 @@
 const std = @import("std");
 const winzigo = @import("winzigo");
 
-pub fn main() anyerror!void {
-    var core = try winzigo.init();
-    defer core.deinit();
+var core: winzigo = undefined;
+
+pub fn init() !void {
+    core = try winzigo.init();
+    errdefer core.deinit();
 
     var window = core.createWindow(.{});
-    defer window.deinit();
+    errdefer window.deinit();
 
     window.setTitle("Hello");
     window.setSize(512, 512);
+}
 
-    var is_running: bool = true;
-    while (is_running) {
-        while (core.pollEvent()) |event| {
-            switch (event.ev) {
-                .quit => |_| {
-                    std.log.info("quit", .{});
-                    is_running = false;
-                },
-                else => {},
-            }
+pub fn update() !bool {
+    while (core.pollEvent()) |event| {
+        switch (event.ev) {
+            .quit => |_| {
+                std.log.info("quit", .{});
+                return false;
+            },
+            else => {},
         }
     }
+    return true;
+}
+
+pub fn deinit() void {
+    core.deinit();
     std.log.info("All your window decorations are belong to us.", .{});
 }
 
