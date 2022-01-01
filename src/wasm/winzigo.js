@@ -19,7 +19,7 @@ wzCanvasInit(width, height) {
   canvas.height = height;
 
   canvas.addEventListener("mousedown", (ev) => {
-    console.log(`mouse down at x: ${ev.x} y: ${ev.y}`);
+    self.wasm.exports.wasmMouseDown(self.canvases.length, ev.clientX, ev.clientY, ev.button);
   });
 
   document.body.appendChild(canvas);
