@@ -1,5 +1,6 @@
 const original_title = document.title;
 const text_decoder = new TextDecoder();
+let log_buf = "";
 
 const main = {
 
@@ -11,6 +12,23 @@ self: {
 wzInit(wasm) {
   self.wasm = wasm;
   self.canvases = new Array();
+},
+
+wzLog(str, len) {
+  console.log(text_decoder.decode(new Uint8Array(self.wasm.exports.memory.buffer, str, len)));
+},
+
+wzLogWrite(str, len) {
+  log_buf += text_decoder.decode(new Uint8Array(self.wasm.exports.memory.buffer, str, len));
+},
+
+wzLogFlush() {
+  console.log(log_buf);
+  log_buf = "";
+},
+
+wzPanic(str, len) {
+  throw Error(text_decoder.decode(new Uint8Array(self.wasm.exports.memory.buffer, str, len)));
 },
 
 wzCanvasInit(width, height) {
