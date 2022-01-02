@@ -1,0 +1,20 @@
+pkgs:
+  winzigo:
+    version: 0.1.0
+    description: Windowing library in Zig
+    license: MIT
+    source_url: "https://github.com/iddev5/winzigo"
+    tags:
+      windowing-library
+      xcb
+      wasm
+    root: src/main.zig
+    files:
+      README.md
+      LICENSE
+      build.zig
+      src/*.zig
+      src/mains/*.zig
+      src/wasm/*
+      src/xcb/*
+    
