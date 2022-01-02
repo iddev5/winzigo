@@ -7,16 +7,15 @@ pub const Window = @import("Window.zig");
 
 pad0: u8,
 
-const EventNode = std.TailQueue(types.Event).Node;
+const EventQueue = std.TailQueue(types.Event);
+const EventNode = EventQueue.Node;
 
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-var event_queue: std.TailQueue(types.Event) = .{};
+var event_queue: EventQueue = .{};
 var has_core = false;
 
 const js = struct {
     const CanvasId = u32;
-
-    extern fn wzLog(str: [*]const u8, len: u32) void;
 };
 
 pub fn init() !Core {
@@ -44,12 +43,8 @@ pub fn pollEvent(core: *Core) ?types.Event {
 }
 
 pub fn waitEvent(core: *Core) ?types.Event {
-    _ = core;
-    return null;
-}
-
-fn log(str: []const u8) void {
-    js.wzLog(str.ptr, str.len);
+    // We cannot wait/halt in wasm, so its no different
+    return core.pollEvent();
 }
 
 fn wasmTranslateButton(button: u2) types.Button {
@@ -61,14 +56,18 @@ fn wasmTranslateButton(button: u2) types.Button {
     };
 }
 
+fn wasmCanvasToWindow(canvas: js.CanvasId) types.Window {
+    return types.Window.initFromInternal(.{ .core = undefined, .id = canvas });
+}
+
 export fn wasmMouseDown(canvas: js.CanvasId, x: u32, y: u32, button: u8) void {
     _ = x;
     _ = y;
-    _ = canvas;
 
-    const event = types.Event{ .window = undefined, .ev = .{ .button_press = .{
-        .button = wasmTranslateButton(@intCast(u2, button)),
-    } } };
+    const event = types.Event{
+        .window = wasmCanvasToWindow(canvas),
+        .ev = .{ .button_press = .{ .button = wasmTranslateButton(@intCast(u2, button)) } },
+    };
 
     const node = arena.allocator().create(EventNode) catch @panic("out of memory");
 

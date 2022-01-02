@@ -27,7 +27,7 @@ pub fn log(
 ) void {
     const prefix = if (scope == .default) ": " else "(" ++ @tagName(scope) ++ "): ";
     const writer = LogWriter{ .context = {} };
-    
+
     writer.print(message_level.asText() ++ prefix ++ format ++ "\n", args) catch return;
     js.wzLogFlush();
 }
