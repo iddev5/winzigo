@@ -7,6 +7,12 @@ const examples = .{
     "wasm",
 };
 
+const web_install_dir = std.build.InstallDir{ .custom = "www" };
+
+fn getRoot() []const u8 {
+    return std.fs.path.dirname(@src().file) orelse ".";
+}
+
 pub fn createApplication(b: *std.build.Builder, name: []const u8, path: []const u8, target: std.zig.CrossTarget) *std.build.LibExeObjStep {
     const lib = std.build.Pkg{
         .name = "winzigo",
@@ -22,6 +28,14 @@ pub fn createApplication(b: *std.build.Builder, name: []const u8, path: []const 
             .dependencies = &.{lib},
         });
         application.install();
+        application.install_step.?.dest_dir = web_install_dir;
+
+        const install_winzigo_js = b.addInstallFileWithDir(
+            .{ .path = getRoot() ++ "/src/wasm/winzigo.js" },
+            web_install_dir,
+            "winzigo.js",
+        );
+        application.install_step.?.step.dependOn(&install_winzigo_js.step);
 
         return application;
     } else {
