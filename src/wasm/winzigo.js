@@ -8,18 +8,18 @@ const winzigo = {
     wasm: undefined,
   },
 
-  wzInit(wasm) {
+  init(wasm) {
     self.wasm = wasm;
     self.canvases = new Array();
   },
 
   wzGetString(str, len) {
     const memory = self.wasm.exports.memory.buffer;
-    return text_decoder.decore(new Uint8Array(memory, str, len));
-  }
+    return text_decoder.decode(new Uint8Array(memory, str, len));
+  },
 
   wzLogWrite(str, len) {
-    log_buf += wzGetString(str, len);
+    log_buf += winzigo.wzGetString(str, len);
   },
 
   wzLogFlush() {
@@ -28,7 +28,7 @@ const winzigo = {
   },
 
   wzPanic(str, len) {
-    throw Error(wzGetString(str, len));
+    throw Error(winzigo.wzGetString(str, len));
   },
 
   wzCanvasInit(width, height) {
@@ -52,7 +52,7 @@ const winzigo = {
 
   wzCanvasSetTitle(canvas, title, len) {
     document.title = titleLen > 0 ?
-      wzGetString(title, len) :
+      winzigo.wzGetString(title, len) :
       original_title;
   },
 
