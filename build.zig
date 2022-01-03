@@ -20,7 +20,7 @@ pub fn createApplication(b: *std.build.Builder, name: []const u8, path: []const 
     };
 
     if (target.toTarget().cpu.arch == .wasm32) {
-        const application = b.addSharedLibrary(name, "src/mains/wasm.zig/", .unversioned);
+        const application = b.addSharedLibrary("application", "src/mains/wasm.zig/", .unversioned);
         application.setTarget(target);
         application.addPackage(.{
             .name = "app",
@@ -36,6 +36,13 @@ pub fn createApplication(b: *std.build.Builder, name: []const u8, path: []const 
             "winzigo.js",
         );
         application.install_step.?.step.dependOn(&install_winzigo_js.step);
+
+        const install_template_html = b.addInstallFileWithDir(
+            .{ .path = getRoot() ++ "/www/template.html" },
+            web_install_dir,
+            "application.html",
+        );
+        application.install_step.?.step.dependOn(&install_template_html.step);
 
         return application;
     } else {
