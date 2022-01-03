@@ -1,3 +1,7 @@
 zig-cache/*
 zig-out/*
 TODO
+
+.gyro/*
+gyro.lock
+deps.zig
