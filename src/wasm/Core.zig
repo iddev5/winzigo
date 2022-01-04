@@ -61,13 +61,17 @@ fn wasmCanvasToWindow(canvas: js.CanvasId) types.Window {
     return types.Window.initFromInternal(.{ .core = undefined, .id = canvas });
 }
 
-export fn wasmMouseDown(canvas: js.CanvasId, x: u32, y: u32, button: u8) void {
+export fn wasmMouseClick(canvas: js.CanvasId, x: u32, y: u32, button: u8, up: u8) void {
     _ = x;
     _ = y;
 
+    const but = wasmTranslateButton(@intCast(u2, button));
+
     const event = types.Event{
         .window = wasmCanvasToWindow(canvas),
-        .ev = .{ .button_press = .{ .button = wasmTranslateButton(@intCast(u2, button)) } },
+        .ev = if (up == 0) .{
+            .button_press = .{ .button = but },
+        } else .{ .button_release = .{ .button = but } },
     };
 
     const node = arena.allocator().create(EventNode) catch @panic("out of memory");
