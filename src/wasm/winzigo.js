@@ -36,6 +36,8 @@ const winzigo = {
     canvas.width = width;
     canvas.height = height;
 
+    canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
+
     canvas.addEventListener("mouseup", (ev) => {
       self.wasm.exports.wasmMouseClick(self.canvases.length, ev.clientX, ev.clientY, ev.button, 1);
     });
