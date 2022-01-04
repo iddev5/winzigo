@@ -59,8 +59,8 @@ const winzigo = {
   wzCanvasSetSize(canvas, width, height) {
     const cv = self.canvases[canvas];
     if (width > 0 && height > 0) {
-      cv.width = width;
-      cv.height = height;
+      cv.canvas.width = width;
+      cv.canvas.height = height;
     }
   },
 };
