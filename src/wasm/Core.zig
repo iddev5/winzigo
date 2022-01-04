@@ -29,6 +29,7 @@ pub fn init() !Core {
 
 pub fn deinit(core: *Core) void {
     _ = core;
+    has_core = false;
     arena.deinit();
 }
 
