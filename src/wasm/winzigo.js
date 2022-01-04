@@ -51,7 +51,7 @@ const winzigo = {
   },
 
   wzCanvasSetTitle(canvas, title, len) {
-    document.title = titleLen > 0 ?
+    document.title = len > 0 ?
       winzigo.wzGetString(title, len) :
       original_title;
   },
