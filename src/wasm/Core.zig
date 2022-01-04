@@ -61,7 +61,16 @@ fn wasmCanvasToWindow(canvas: js.CanvasId) types.Window {
     return types.Window.initFromInternal(.{ .core = undefined, .id = canvas });
 }
 
-export fn wasmMouseClick(canvas: js.CanvasId, x: u32, y: u32, button: u8, up: u8) void {
+fn pushEvent(event: types.Event) void {
+    const node = arena.allocator().create(EventNode) catch @panic("out of memory");
+
+    node.* = .{
+        .data = event,
+    };
+    event_queue.append(node);
+}
+
+export fn wasmMouseClick(canvas: js.CanvasId, x: i16, y: i16, button: u8, up: u8) void {
     _ = x;
     _ = y;
 
@@ -74,10 +83,14 @@ export fn wasmMouseClick(canvas: js.CanvasId, x: u32, y: u32, button: u8, up: u8
         } else .{ .button_release = .{ .button = but } },
     };
 
-    const node = arena.allocator().create(EventNode) catch @panic("out of memory");
+    pushEvent(event);
+}
 
-    node.* = .{
-        .data = event,
+export fn wasmMouseMotion(canvas: js.CanvasId, x: i16, y: i16) void {
+    const event = types.Event{
+        .window = wasmCanvasToWindow(canvas),
+        .ev = .{ .mouse_motion = .{ .x = x, .y = y } },
     };
-    event_queue.append(node);
+
+    pushEvent(event);
 }

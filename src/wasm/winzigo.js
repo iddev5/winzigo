@@ -46,6 +46,10 @@ const winzigo = {
       self.wasm.exports.wasmMouseClick(self.canvases.length, ev.clientX, ev.clientY, ev.button, 0);
     });
 
+    canvas.addEventListener("mousemove", (ev) => {
+      self.wasm.exports.wasmMouseMotion(self.canvases.length, ev.clientX, ev.clientY);
+    });
+
     document.body.appendChild(canvas);
     return self.canvases.push({ canvas }) - 1;
   },
