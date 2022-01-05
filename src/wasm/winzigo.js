@@ -39,15 +39,18 @@ const winzigo = {
     canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
 
     canvas.addEventListener("mouseup", (ev) => {
-      self.wasm.exports.wasmMouseClick(self.canvases.length, ev.clientX, ev.clientY, ev.button, 1);
+      const cv = self.canvases.findIndex((el) => el.canvas === ev.currentTarget);
+      self.wasm.exports.wasmMouseClick(cv, ev.clientX, ev.clientY, ev.button, 1);
     });
 
     canvas.addEventListener("mousedown", (ev) => {
-      self.wasm.exports.wasmMouseClick(self.canvases.length, ev.clientX, ev.clientY, ev.button, 0);
+      const cv = self.canvases.findIndex((el) => el.canvas === ev.currentTarget);
+      self.wasm.exports.wasmMouseClick(cv, ev.clientX, ev.clientY, ev.button, 0);
     });
 
     canvas.addEventListener("mousemove", (ev) => {
-      self.wasm.exports.wasmMouseMotion(winzigo.self.canvases.length, ev.clientX, ev.clientY);
+      const cv = self.canvases.findIndex((el) => el.canvas === ev.currentTarget);
+      self.wasm.exports.wasmMouseMotion(cv, ev.clientX, ev.clientY);
     });
 
     canvas.addEventListener("mouseenter", (ev) => {
