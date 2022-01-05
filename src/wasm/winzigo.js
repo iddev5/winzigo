@@ -47,11 +47,16 @@ const winzigo = {
     });
 
     canvas.addEventListener("mousemove", (ev) => {
-      self.wasm.exports.wasmMouseMotion(self.canvases.length, ev.clientX, ev.clientY);
+      self.wasm.exports.wasmMouseMotion(winzigo.self.canvases.length, ev.clientX, ev.clientY);
     });
 
+    canvas.addEventListener("mouseenter", (ev) => {
+      const cv = self.canvases.find((el) => el.canvas === ev.currentTarget);
+      document.title = cv.title;
+    })
+
     document.body.appendChild(canvas);
-    return self.canvases.push({ canvas }) - 1;
+    return self.canvases.push({ canvas: canvas, title: undefined }) - 1;
   },
 
   wzCanvasDeinit(canvas) {
@@ -61,9 +66,10 @@ const winzigo = {
   },
 
   wzCanvasSetTitle(canvas, title, len) {
-    document.title = len > 0 ?
+    const str = len > 0 ?
       winzigo.wzGetString(title, len) :
       original_title;
+    self.canvases[canvas].title = str;
   },
 
   wzCanvasSetSize(canvas, width, height) {
