@@ -36,32 +36,32 @@ const winzigo = {
     canvas.width = width;
     canvas.height = height;
 
+    let findCv = function (ev) {
+      return self.canvases.findIndex((el) => el.canvas === ev.currentTarget);
+    }
+
     canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
 
     canvas.addEventListener("mouseup", (ev) => {
-      const cv = self.canvases.findIndex((el) => el.canvas === ev.currentTarget);
-      self.wasm.exports.wasmMouseClick(cv, ev.clientX, ev.clientY, ev.button, 1);
+      self.wasm.exports.wasmMouseClick(findCv(ev), ev.clientX, ev.clientY, ev.button, 1);
     });
 
     canvas.addEventListener("mousedown", (ev) => {
-      const cv = self.canvases.findIndex((el) => el.canvas === ev.currentTarget);
-      self.wasm.exports.wasmMouseClick(cv, ev.clientX, ev.clientY, ev.button, 0);
+      self.wasm.exports.wasmMouseClick(findCv(ev), ev.clientX, ev.clientY, ev.button, 0);
     });
 
     canvas.addEventListener("mousemove", (ev) => {
-      const cv = self.canvases.findIndex((el) => el.canvas === ev.currentTarget);
-      self.wasm.exports.wasmMouseMotion(cv, ev.clientX, ev.clientY);
+      self.wasm.exports.wasmMouseMotion(findCv(ev), ev.clientX, ev.clientY);
     });
 
     canvas.addEventListener("mouseenter", (ev) => {
-      const cv = self.canvases.findIndex((el) => el.canvas === ev.currentTarget);
+      const cv = findCv(ev);
       document.title = self.canvases[cv].title;
       self.wasm.exports.wasmMouseNotify(cv, ev.clientX, ev.clientY, 1);
     })
 
     canvas.addEventListener("mouseleave", (ev) => {
-      const cv = self.canvases.findIndex((el) => el.canvas === ev.currentTarget);
-      self.wasm.exports.wasmMouseNotify(cv, ev.clientX, ev.clientY, 0);
+      self.wasm.exports.wasmMouseNotify(findCv(ev), ev.clientX, ev.clientY, 0);
     })
 
     document.body.appendChild(canvas);
