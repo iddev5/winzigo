@@ -64,6 +64,10 @@ const winzigo = {
       self.wasm.exports.wasmMouseNotify(findCv(ev), ev.clientX, ev.clientY, 0);
     })
 
+    canvas.addEventListener("wheel", (ev) => {
+      self.wasm.exports.wasmMouseWheel(findCv(ev), ev.deltaX, ev.deltaY);
+    });
+
     document.body.appendChild(canvas);
     return self.canvases.push({ canvas: canvas, title: undefined }) - 1;
   },

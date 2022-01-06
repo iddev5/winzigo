@@ -107,3 +107,26 @@ export fn wasmMouseNotify(canvas: js.CanvasId, x: i16, y: i16, enter: u8) void {
 
     pushEvent(event);
 }
+
+fn signum(n: i16) i2 {
+    if (n > 0) {
+        return 1;
+    } else if (n < 0) {
+        return -1;
+    }
+    return 0;
+}
+
+export fn wasmMouseWheel(canvas: js.CanvasId, scroll_x: i16, scroll_y: i16) void {
+    const event = types.Event{
+        .window = wasmCanvasToWindow(canvas),
+        .ev = .{
+            .mouse_scroll = .{
+                .scroll_x = signum(scroll_x),
+                .scroll_y = signum(scroll_y),
+            },
+        },
+    };
+
+    pushEvent(event);
+}
