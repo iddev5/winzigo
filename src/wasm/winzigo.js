@@ -54,8 +54,14 @@ const winzigo = {
     });
 
     canvas.addEventListener("mouseenter", (ev) => {
-      const cv = self.canvases.find((el) => el.canvas === ev.currentTarget);
-      document.title = cv.title;
+      const cv = self.canvases.findIndex((el) => el.canvas === ev.currentTarget);
+      document.title = self.canvases[cv].title;
+      self.wasm.exports.wasmMouseNotify(cv, ev.clientX, ev.clientY, 1);
+    })
+
+    canvas.addEventListener("mouseleave", (ev) => {
+      const cv = self.canvases.findIndex((el) => el.canvas === ev.currentTarget);
+      self.wasm.exports.wasmMouseNotify(cv, ev.clientX, ev.clientY, 0);
     })
 
     document.body.appendChild(canvas);

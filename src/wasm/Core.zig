@@ -94,3 +94,16 @@ export fn wasmMouseMotion(canvas: js.CanvasId, x: i16, y: i16) void {
 
     pushEvent(event);
 }
+
+export fn wasmMouseNotify(canvas: js.CanvasId, x: i16, y: i16, enter: u8) void {
+    const event = types.Event{
+        .window = wasmCanvasToWindow(canvas),
+        .ev = if (enter == 0) .{
+            .mouse_leave = .{ .x = x, .y = y },
+        } else .{
+            .mouse_enter = .{ .x = x, .y = y },
+        },
+    };
+
+    pushEvent(event);
+}
