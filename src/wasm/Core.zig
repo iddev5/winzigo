@@ -130,3 +130,16 @@ export fn wasmMouseWheel(canvas: js.CanvasId, scroll_x: i16, scroll_y: i16) void
 
     pushEvent(event);
 }
+
+export fn wasmKeyDown(canvas: js.CanvasId, key: u32) void {
+    std.log.info("keycode: {}", .{key});
+
+    const event = types.Event{
+        .window = wasmCanvasToWindow(canvas),
+        .ev = .{
+            .key_press = .{ .key = @intToEnum(types.Key, key) },
+        },
+    };
+
+    pushEvent(event);
+}
