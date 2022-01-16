@@ -90,7 +90,7 @@ pub const Key = enum(u8) {
     kp_equal,
     kp_enter,
 
-    @"return",
+    enter,
     escape,
     tab,
     left_shift,

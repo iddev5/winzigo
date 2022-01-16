@@ -220,7 +220,7 @@ inline fn translateKeycode(core: *Core, keycode: u8) Key {
         xk.XK_KP_Equal => .kp_equal,
         xk.XK_KP_Enter => .kp_enter,
 
-        xk.XK_Return => .@"return",
+        xk.XK_Return => .enter,
         xk.XK_Escape => .escape,
         xk.XK_Tab => .tab,
         xk.XK_Shift_L => .left_shift,
