@@ -217,11 +217,11 @@ const winzigo = {
     canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
 
     canvas.addEventListener("mouseup", (ev) => {
-      self.wasm.exports.wasmMouseClick(findCv(ev), ev.clientX, ev.clientY, ev.button, 1);
+      self.wasm.exports.wasmMouseUp(findCv(ev), ev.clientX, ev.clientY, ev.button);
     });
 
     canvas.addEventListener("mousedown", (ev) => {
-      self.wasm.exports.wasmMouseClick(findCv(ev), ev.clientX, ev.clientY, ev.button, 0);
+      self.wasm.exports.wasmMouseDown(findCv(ev), ev.clientX, ev.clientY, ev.button);
     });
 
     canvas.addEventListener("mousemove", (ev) => {
@@ -231,11 +231,11 @@ const winzigo = {
     canvas.addEventListener("mouseenter", (ev) => {
       const cv = findCv(ev);
       document.title = self.canvases[cv].title;
-      self.wasm.exports.wasmMouseNotify(cv, ev.clientX, ev.clientY, 1);
+      self.wasm.exports.wasmMouseEnter(cv, ev.clientX, ev.clientY);
     })
 
     canvas.addEventListener("mouseleave", (ev) => {
-      self.wasm.exports.wasmMouseNotify(findCv(ev), ev.clientX, ev.clientY, 0);
+      self.wasm.exports.wasmMouseLeave(findCv(ev), ev.clientX, ev.clientY);
     })
 
     canvas.addEventListener("wheel", (ev) => {

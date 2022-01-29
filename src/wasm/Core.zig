@@ -70,20 +70,22 @@ fn pushEvent(event: types.Event) void {
     event_queue.append(node);
 }
 
-export fn wasmMouseClick(canvas: js.CanvasId, x: i16, y: i16, button: u8, up: u8) void {
-    _ = x;
-    _ = y;
-
-    const but = wasmTranslateButton(@intCast(u2, button));
-
-    const event = types.Event{
+export fn wasmMouseUp(canvas: js.CanvasId, _: i16, _: i16, button: u8) void {
+    pushEvent(.{
         .window = wasmCanvasToWindow(canvas),
-        .ev = if (up == 0) .{
-            .button_press = .{ .button = but },
-        } else .{ .button_release = .{ .button = but } },
-    };
+        .ev = .{ .button_release = .{
+            .button = wasmTranslateButton(@intCast(u2, button)),
+        } },
+    });
+}
 
-    pushEvent(event);
+export fn wasmMouseDown(canvas: js.CanvasId, _: i16, _: i16, button: u8) void {
+    pushEvent(.{
+        .window = wasmCanvasToWindow(canvas),
+        .ev = .{ .button_press = .{
+            .button = wasmTranslateButton(@intCast(u2, button)),
+        } },
+    });
 }
 
 export fn wasmMouseMotion(canvas: js.CanvasId, x: i16, y: i16) void {
@@ -95,17 +97,22 @@ export fn wasmMouseMotion(canvas: js.CanvasId, x: i16, y: i16) void {
     pushEvent(event);
 }
 
-export fn wasmMouseNotify(canvas: js.CanvasId, x: i16, y: i16, enter: u8) void {
-    const event = types.Event{
+export fn wasmMouseEnter(canvas: js.CanvasId, x: i16, y: i16) void {
+    pushEvent(.{
         .window = wasmCanvasToWindow(canvas),
-        .ev = if (enter == 0) .{
-            .mouse_leave = .{ .x = x, .y = y },
-        } else .{
+        .ev = .{
             .mouse_enter = .{ .x = x, .y = y },
         },
-    };
+    });
+}
 
-    pushEvent(event);
+export fn wasmMouseLeave(canvas: js.CanvasId, x: i16, y: i16) void {
+    pushEvent(.{
+        .window = wasmCanvasToWindow(canvas),
+        .ev = .{
+            .mouse_leave = .{ .x = x, .y = y },
+        },
+    });
 }
 
 fn signum(n: i16) i2 {
