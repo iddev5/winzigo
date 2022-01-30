@@ -182,6 +182,10 @@ const winzigo = {
       return 118; // Unknown
     }
 
+    window.addEventListener("keyup", (ev) => {
+      self.wasm.exports.wasmKeyUp(findCv(ev), convertKeyCode(ev.code));
+    });
+
     window.addEventListener("keydown", (ev) => {
       self.wasm.exports.wasmKeyDown(findCv(ev), convertKeyCode(ev.code));
     });

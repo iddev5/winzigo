@@ -138,6 +138,19 @@ export fn wasmMouseWheel(canvas: js.CanvasId, scroll_x: i16, scroll_y: i16) void
     pushEvent(event);
 }
 
+export fn wasmKeyUp(canvas: js.CanvasId, key: u32) void {
+    const event = types.Event{
+        .window = wasmCanvasToWindow(canvas),
+        .ev = .{
+            .key_release = .{ .key = @intToEnum(types.Key, key) },
+        },
+    };
+
+    pushEvent(event);
+}
+
+// ISSUE: it currently spams keydown when a key is already down,
+// much like how a key state work
 export fn wasmKeyDown(canvas: js.CanvasId, key: u32) void {
     std.log.info("keycode: {}", .{key});
 
