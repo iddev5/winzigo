@@ -182,7 +182,7 @@ const winzigo = {
       return 118; // Unknown
     }
 
-    window.addEventListener("keypress", (ev) => {
+    window.addEventListener("keydown", (ev) => {
       self.wasm.exports.wasmKeyDown(findCv(ev), convertKeyCode(ev.code));
     });
   },
