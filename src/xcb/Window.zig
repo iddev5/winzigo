@@ -7,6 +7,8 @@ const types = @import("../main.zig");
 
 core: *Core,
 window: u32 = undefined,
+width: u16,
+height: u16,
 
 pub fn init(core: *Core, info: types.WindowInfo) Window {
     var self: Window = undefined;
@@ -76,4 +78,6 @@ pub fn setSize(window: *Window, width: u16, height: u16) void {
         @enumToInt(xcb.Defines.Config.WindowWidth) | @enumToInt(xcb.Defines.Config.WindowHeight),
         @ptrCast(*anyopaque, values),
     );
+    window.width = width;
+    window.height = height;
 }
