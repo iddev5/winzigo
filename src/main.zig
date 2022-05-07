@@ -107,4 +107,8 @@ pub const Window = struct {
     pub fn setSize(window: *Window, width: u16, height: u16) void {
         window.internal.setSize(width, height);
     }
+
+    pub fn getSize(window: *Window) Dim {
+        return window.internal.getSize();
+    }
 };

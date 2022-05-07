@@ -82,3 +82,7 @@ pub fn setSize(window: *Window, width: u16, height: u16) void {
     window.width = width;
     window.height = height;
 }
+
+pub fn getSize(window: *Window) types.Dim {
+    return .{ .width = window.width, .height = window.height };
+}
