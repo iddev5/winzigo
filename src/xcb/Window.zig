@@ -38,6 +38,7 @@ pub fn init(core: *Core, info: types.WindowInfo) Window {
     value |= @enumToInt(xcb.EventMask.FocusChange);
     value |= @enumToInt(xcb.EventMask.EnterWindow);
     value |= @enumToInt(xcb.EventMask.LeaveWindow);
+    value |= @enumToInt(xcb.EventMask.StructureNotify);
 
     _ = xcb.changeWindowAttributes(
         core.connection,

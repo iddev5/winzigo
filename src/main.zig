@@ -34,6 +34,10 @@ pub const Event = struct {
         mouse_leave: MousePos,
         focus_in: void,
         focus_out: void,
+        window_resize: struct {
+            width: u16,
+            height: u16,
+        },
         quit: void,
     },
 };

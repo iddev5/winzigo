@@ -47,6 +47,9 @@ pub fn update() !bool {
             .focus_out => |_| {
                 std.log.info("lost focus", .{});
             },
+            .window_resize => |ev| {
+                std.log.info("window resized, width: {} height: {}", .{ ev.width, ev.height });
+            },
             .quit => |_| {
                 std.log.info("quit", .{});
                 return false;

@@ -112,6 +112,7 @@ pub const EventMask = enum(u32) {
     EnterWindow = 16,
     LeaveWindow = 32,
     PointerMotion = 64,
+    StructureNotify = 131072,
     FocusChange = 2097152,
 };
 
@@ -125,6 +126,9 @@ pub const EventType = enum(u32) {
     LeaveNotify = 8,
     FocusIn = 9,
     FocusOut = 10,
+    MapNotify = 19,
+    ReparentNotify = 21,
+    ConfigureNotify = 22,
     ClientMessage = 33,
 };
 
@@ -247,6 +251,22 @@ pub const EnterNotifyEvent = extern struct {
 };
 
 pub const LeaveNotifyEvent = EnterNotifyEvent;
+
+pub const ConfigureNotifyEvent = struct {
+    response_type: u8,
+    pad0: u8,
+    sequence: u16,
+    event: Window,
+    window: Window,
+    above_sibling: Window,
+    x: i16,
+    y: i16,
+    width: u16,
+    height: u16,
+    border_width: u16,
+    override_redirect: u8,
+    pad1: u8,
+};
 
 pub const Atom = u32;
 

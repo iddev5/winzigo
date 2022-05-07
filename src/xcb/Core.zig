@@ -489,6 +489,24 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                     } },
                 };
             },
+            .ConfigureNotify => {
+                const cn = @ptrCast(*xcb.ConfigureNotifyEvent, ev);
+                const window = xcbToWindow(core.window);
+
+                if (core.window.width != cn.width and core.window.height != cn.height) {
+                    core.window.width = cn.width;
+                    core.window.height = cn.width;
+                    return Event{
+                        .window = window,
+                        .ev = .{
+                            .window_resize = .{
+                                .width = cn.width,
+                                .height = cn.height,
+                            },
+                        },
+                    };
+                }
+            },
             .ClientMessage => {
                 const cm = @ptrCast(*xcb.ClientMessageEvent, event);
                 if (cm.data.data32[0] == core.wm_delete_window.atom) {
@@ -498,7 +516,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                     };
                 }
             },
-            // else => {},
+            else => {},
         }
     }
     return null;
