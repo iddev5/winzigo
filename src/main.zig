@@ -5,9 +5,14 @@ const enums = @import("enums.zig");
 pub const Button = enums.Button;
 pub const Key = enums.Key;
 
-const MousePos = struct {
+pub const Pos = struct {
     x: i16,
     y: i16,
+};
+
+pub const Dim = struct {
+    width: u16,
+    height: u16,
 };
 
 pub const Event = struct {
@@ -29,15 +34,12 @@ pub const Event = struct {
             scroll_x: i2,
             scroll_y: i2,
         },
-        mouse_motion: MousePos,
-        mouse_enter: MousePos,
-        mouse_leave: MousePos,
+        mouse_motion: Pos,
+        mouse_enter: Pos,
+        mouse_leave: Pos,
         focus_in: void,
         focus_out: void,
-        window_resize: struct {
-            width: u16,
-            height: u16,
-        },
+        window_resize: Dim,
         quit: void,
     },
 };
