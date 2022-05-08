@@ -308,6 +308,21 @@ pub const KeyboardMappingReply = extern struct {
     pad0: [24]u8,
 };
 
+pub const GeometryCookie = VoidCookie;
+
+pub const GeometryReply = extern struct {
+    response_type: u8,
+    depth: u8,
+    sequence: u16,
+    length: u16,
+    root: Window,
+    x: i16,
+    y: i16,
+    width: u16,
+    height: u16,
+    border_width: u16,
+};
+
 extern "xcb" fn xcb_connect(displayname: [*]const u8, screenp: ?*c_int) ?*Connection;
 pub fn connect(displayname: []const u8, screenp: ?*c_int) !*Connection {
     if (xcb_connect(displayname.ptr, screenp)) |connection| {
@@ -496,4 +511,14 @@ pub fn getKeyboardMappingReply(c: *Connection, cookie: KeyboardMappingCookie, e:
 extern "xcb" fn xcb_get_keyboard_mapping_keysyms(r: *const KeyboardMappingReply) [*]KeySym;
 pub fn getKeyboardMappingKeysyms(r: *const KeyboardMappingReply) [*]KeySym {
     return xcb_get_keyboard_mapping_keysyms(r);
+}
+
+extern "xcb" fn xcb_get_geometry(c: *Connection, window: Window) GeometryCookie;
+pub fn getGeometry(c: *Connection, window: Window) GeometryCookie {
+    return xcb_get_geometry(c, window);
+}
+
+extern "xcb" fn xcb_get_geometry_reply(c: *Connection, cookie: GeometryCookie, e: ?**GenericError) *GeometryReply;
+pub fn getGeometryReply(c: *Connection, cookie: GeometryCookie, e: ?**GenericError) *GeometryReply {
+    return xcb_get_geometry_reply(c, cookie, e);
 }

@@ -87,5 +87,9 @@ pub fn setSize(window: *Window, width: u16, height: u16) void {
 }
 
 pub fn getSize(window: *Window) types.Dim {
-    return .{ .width = window.width, .height = window.height };
+    const cookie = xcb.getGeometry(window.core.connection, window.window);
+    const reply = xcb.getGeometryReply(window.core.connection, cookie, null);
+    defer std.c.free(reply);
+
+    return .{ .width = reply.width, .height = reply.height };
 }
