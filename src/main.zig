@@ -1,4 +1,5 @@
 const Core = @This();
+const std = @import("std");
 const builtin = @import("builtin");
 const enums = @import("enums.zig");
 
@@ -59,18 +60,18 @@ fn WindowType() type {
     return CoreType().Window;
 }
 
-internal: CoreType(),
+internal: *CoreType(),
 
-pub fn init() !Core {
-    return Core{ .internal = try CoreType().init() };
+pub fn init(allocator: std.mem.Allocator) !Core {
+    return Core{ .internal = try CoreType().init(allocator) };
 }
 
 pub fn deinit(core: *Core) void {
     core.internal.deinit();
 }
 
-pub fn createWindow(core: *Core, info: WindowInfo) Window {
-    return .{ .internal = core.internal.createWindow(info) };
+pub fn createWindow(core: *Core, info: WindowInfo) !Window {
+    return Window{ .internal = try core.internal.createWindow(info) };
 }
 
 pub fn pollEvent(core: *Core) ?Event {
@@ -86,13 +87,13 @@ pub fn getKeyDown(core: *Core, key: Key) bool {
 }
 
 pub const Window = struct {
-    internal: WindowType(),
+    internal: *WindowType(),
 
-    pub fn init(info: WindowInfo) Window {
-        return .{ .internal = WindowType().init(info) };
+    pub fn init(info: WindowInfo) !Window {
+        return .{ .internal = try WindowType().init(info) };
     }
 
-    pub fn initFromInternal(internal: WindowType()) Window {
+    pub fn initFromInternal(internal: *WindowType()) Window {
         return .{ .internal = internal };
     }
 

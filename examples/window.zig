@@ -2,12 +2,16 @@ const std = @import("std");
 const winzigo = @import("winzigo");
 
 var core: winzigo = undefined;
+var window: winzigo.Window = undefined;
+var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 
 pub fn init() !void {
-    core = try winzigo.init();
+    const allocator = gpa.allocator();
+
+    core = try winzigo.init(allocator);
     errdefer core.deinit();
 
-    var window = core.createWindow(.{});
+    window = try core.createWindow(.{});
     errdefer window.deinit();
 
     window.setTitle("Hello");
@@ -28,7 +32,10 @@ pub fn update() !bool {
 }
 
 pub fn deinit() void {
+    window.deinit();
     core.deinit();
+    _ = gpa.deinit();
+
     std.log.info("All your window decorations are belong to us.", .{});
 }
 

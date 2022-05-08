@@ -9,10 +9,13 @@ screen: *xcb.Screen,
 window: *Window,
 wm_protocols: *xcb.InternAtomReply,
 wm_delete_window: *xcb.InternAtomReply,
+allocator: std.mem.Allocator,
 
-pub fn init() !Core {
-    var core: Core = undefined;
+pub fn init(allocator: std.mem.Allocator) !*Core {
+    var core = try allocator.create(Core);
+    errdefer allocator.destroy(core);
 
+    core.allocator = allocator;
     core.connection = try xcb.connect("", null);
     core.setup = try xcb.getSetup(core.connection);
 
@@ -35,10 +38,11 @@ pub fn deinit(core: *Core) void {
     std.c.free(core.wm_protocols);
     std.c.free(core.wm_delete_window);
     xcb.disconnect(core.connection);
+    core.allocator.destroy(core);
 }
 
-pub fn createWindow(core: *Core, info: types.WindowInfo) Window {
-    var window = Window.init(core, info);
+pub fn createWindow(core: *Core, info: types.WindowInfo) !*Window {
+    var window = try Window.init(core, info);
     _ = xcb.changeProperty(
         core.connection,
         .Replace,
@@ -49,9 +53,10 @@ pub fn createWindow(core: *Core, info: types.WindowInfo) Window {
         1,
         &core.wm_delete_window.atom,
     );
+    errdefer window.deinit();
 
     // TODO: Actually support multiple window
-    core.window = &window;
+    core.window = window;
     return window;
 }
 
@@ -109,7 +114,7 @@ const ScrollDir = types.ScrollDir;
 const Key = types.Key;
 
 inline fn xcbToWindow(window: *Window) types.Window {
-    return types.Window.initFromInternal(window.*);
+    return types.Window.initFromInternal(window);
 }
 
 inline fn translateButton(core: *Core, but: u8) Button {

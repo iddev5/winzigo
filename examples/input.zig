@@ -2,10 +2,14 @@ const std = @import("std");
 const winzigo = @import("winzigo");
 
 pub fn main() anyerror!void {
-    var core = try winzigo.init();
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    defer _ = gpa.deinit();
+
+    var core = try winzigo.init(allocator);
     defer core.deinit();
 
-    var window = core.createWindow(.{});
+    var window = try core.createWindow(.{});
     defer window.deinit();
 
     var is_running: bool = true;

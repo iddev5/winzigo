@@ -10,8 +10,10 @@ window: u32 = undefined,
 width: u16,
 height: u16,
 
-pub fn init(core: *Core, info: types.WindowInfo) Window {
-    var self: Window = undefined;
+pub fn init(core: *Core, info: types.WindowInfo) !*Window {
+    var self = try core.allocator.create(Window);
+    errdefer core.allocator.destroy(self);
+
     self.core = core;
     self.window = xcb.generateId(core.connection);
     _ = xcb.createWindow(
@@ -56,6 +58,7 @@ pub fn init(core: *Core, info: types.WindowInfo) Window {
 
 pub fn deinit(window: *Window) void {
     xcb.destroyWindow(window.core.connection, window.window);
+    window.core.allocator.destroy(window);
 }
 
 pub fn setTitle(window: *Window, title: []const u8) void {
