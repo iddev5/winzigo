@@ -14,8 +14,9 @@ const js = struct {
     extern fn wzCanvasSetSize(canvas: CanvasId, width: u32, height: u32) void;
 };
 
-pub fn init(core: *Core, info: types.WindowInfo) Window {
-    var window = Window{
+pub fn init(core: *Core, info: types.WindowInfo) !*Window {
+    const window = try core.allocator.create(Window);
+    window.* = Window{
         .id = js.wzCanvasInit(info.width, info.height),
         .core = core,
     };
@@ -33,4 +34,8 @@ pub fn setTitle(window: *Window, title: []const u8) void {
 
 pub fn setSize(window: *Window, width: u32, height: u32) void {
     js.wzCanvasSetSize(window.id, width, height);
+}
+
+pub fn getSize(_: *Window) types.Dim {
+    return .{ 0, 0 };
 }

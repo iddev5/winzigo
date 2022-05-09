@@ -5,7 +5,7 @@ const Allocator = mem.Allocator;
 const types = @import("../main.zig");
 pub const Window = @import("Window.zig");
 
-pad0: u8,
+allocator: std.mem.Allocator,
 
 const EventQueue = std.TailQueue(types.Event);
 const EventNode = EventQueue.Node;
@@ -18,23 +18,26 @@ const js = struct {
     const CanvasId = u32;
 };
 
-pub fn init() !Core {
+pub fn init(allocator: std.mem.Allocator) !*Core {
     if (has_core) @panic("only one Core allowed for wasm backend");
     has_core = true;
 
-    return Core{
-        .pad0 = 1,
+    const core = try allocator.create(Core);
+    core.* = Core{
+        .allocator = allocator,
     };
+
+    return core;
 }
 
 pub fn deinit(core: *Core) void {
-    _ = core;
+    core.allocator.destroy(core);
     has_core = false;
     arena.deinit();
 }
 
-pub fn createWindow(core: *Core, info: types.WindowInfo) Window {
-    return Window.init(core, info);
+pub fn createWindow(core: *Core, info: types.WindowInfo) !*Window {
+    return try Window.init(core, info);
 }
 
 pub fn pollEvent(core: *Core) ?types.Event {
