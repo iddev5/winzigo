@@ -1,18 +1,10 @@
 const Window = @This();
 const Core = @import("Core.zig");
 const types = @import("../main.zig");
+const js = @import("js_interop.zig");
 
 id: js.CanvasId,
 core: *Core,
-
-const js = struct {
-    const CanvasId = u32;
-
-    extern fn wzCanvasInit(width: u32, height: u32) CanvasId;
-    extern fn wzCanvasDeinit(canvas: CanvasId) void;
-    extern fn wzCanvasSetTitle(canvas: CanvasId, title: [*]const u8, len: usize) void;
-    extern fn wzCanvasSetSize(canvas: CanvasId, width: u32, height: u32) void;
-};
 
 pub fn init(core: *Core, info: types.WindowInfo) !*Window {
     const window = try core.allocator.create(Window);

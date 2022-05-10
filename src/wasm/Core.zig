@@ -3,18 +3,13 @@ const std = @import("std");
 const mem = std.mem;
 const Allocator = mem.Allocator;
 const types = @import("../main.zig");
+const js = @import("js_interop.zig");
 pub const Window = @import("Window.zig");
 
 allocator: std.mem.Allocator,
 window: *Window = undefined,
 
 var has_core = false;
-
-const js = struct {
-    const CanvasId = u32;
-
-    extern fn wzEventShift() c_int;
-};
 
 pub fn init(allocator: std.mem.Allocator) !*Core {
     if (has_core)
