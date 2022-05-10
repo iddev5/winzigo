@@ -8,7 +8,7 @@ pub const Window = @import("Window.zig");
 allocator: std.mem.Allocator,
 window: *Window = undefined,
 
-var global_core: ?*Core = null;
+var has_core = false;
 
 const js = struct {
     const CanvasId = u32;
@@ -17,32 +17,35 @@ const js = struct {
 };
 
 pub fn init(allocator: std.mem.Allocator) !*Core {
-    if (global_core != null) @panic("only one Core allowed for wasm backend");
+    if (has_core)
+        @panic("only one Core allowed for wasm backend");
 
-    global_core = try allocator.create(Core);
-    global_core.?.* = Core{
+    has_core = true;
+
+    const core = try allocator.create(Core);
+    core.* = Core{
         .allocator = allocator,
     };
 
-    return global_core.?;
+    return core;
 }
 
 pub fn deinit(core: *Core) void {
     core.allocator.destroy(core);
-    global_core = null;
+    has_core = false;
 }
 
 pub fn createWindow(core: *Core, info: types.WindowInfo) !*Window {
-    global_core.?.window = try Window.init(core, info);
-    return global_core.?.window;
+    core.window = try Window.init(core, info);
+    return core.window;
 }
 
-pub fn pollEvent(_: *Core) ?types.Event {
+pub fn pollEvent(core: *Core) ?types.Event {
     const ev_type = js.wzEventShift();
     if (ev_type == 0)
         return null;
 
-    const window = wasmCanvasToWindow(@intCast(u32, js.wzEventShift()));
+    const window = core.wasmCanvasToWindow(@intCast(u32, js.wzEventShift()));
 
     return switch (ev_type) {
         // Key Press
@@ -141,9 +144,9 @@ fn wasmTranslateButton(button: u2) types.Button {
     };
 }
 
-fn wasmCanvasToWindow(canvas: js.CanvasId) types.Window {
+fn wasmCanvasToWindow(core: *Core, canvas: js.CanvasId) types.Window {
     _ = canvas;
-    return types.Window.initFromInternal(global_core.?.window);
+    return types.Window.initFromInternal(core.window);
 }
 
 fn signum(n: i16) i2 {
