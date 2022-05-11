@@ -79,7 +79,24 @@ pub fn build(b: *std.build.Builder) void {
         const make_step = b.step("make-" ++ eg, "Build the " ++ eg ++ " example");
         make_step.dependOn(&example.install_step.?.step);
 
-        if (target.toTarget().cpu.arch != .wasm32) {
+        if (target.toTarget().cpu.arch == .wasm32) {
+            const http_server = b.addExecutable("http-server", "tools/http-server.zig");
+            http_server.addPackage(.{
+                .name = "apple_pie",
+                .path = .{ .path = "deps/apple_pie/src/apple_pie.zig" },
+            });
+
+            const launch = b.addSystemCommand(&.{ "xdg-open", "http://127.0.0.1:8000/application.html" });
+            launch.step.dependOn(&example.install_step.?.step);
+
+            const serve = http_server.run();
+            serve.addArg("application");
+            serve.step.dependOn(&launch.step);
+            serve.cwd = b.getInstallPath(web_install_dir, "");
+
+            const run_step = b.step("run-" ++ eg, "Run the " ++ eg ++ "example");
+            run_step.dependOn(&serve.step);
+        } else {
             const run_cmd = example.run();
             run_cmd.step.dependOn(&example.install_step.?.step);
             if (b.args) |args| {
