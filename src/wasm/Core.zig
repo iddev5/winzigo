@@ -9,14 +9,7 @@ pub const Window = @import("Window.zig");
 allocator: std.mem.Allocator,
 window: *Window = undefined,
 
-var has_core = false;
-
 pub fn init(allocator: std.mem.Allocator) !*Core {
-    if (has_core)
-        @panic("only one Core allowed for wasm backend");
-
-    has_core = true;
-
     const core = try allocator.create(Core);
     core.* = Core{
         .allocator = allocator,
@@ -27,7 +20,6 @@ pub fn init(allocator: std.mem.Allocator) !*Core {
 
 pub fn deinit(core: *Core) void {
     core.allocator.destroy(core);
-    has_core = false;
 }
 
 pub fn createWindow(core: *Core, info: types.WindowInfo) !*Window {
