@@ -3,20 +3,16 @@ const text_decoder = new TextDecoder();
 let log_buf = "";
 
 const winzigo = {
-  self: {
-    canvases: [],
-    wasm: undefined,
-    events: [],
-  },
+  canvases: [],
+  wasm: undefined,
+  events: [],
 
   init(wasm) {
-    self.wasm = wasm;
-    self.canvases = new Array();
-    self.events = new Array();
+    this.wasm = wasm;
   },
 
   wzGetString(str, len) {
-    const memory = self.wasm.exports.memory.buffer;
+    const memory = winzigo.wasm.exports.memory.buffer;
     return text_decoder.decode(new Uint8Array(memory, str, len));
   },
 
@@ -40,7 +36,7 @@ const winzigo = {
     canvas.tabIndex = 1;
 
     let findCv = function (ev) {
-      return self.canvases.findIndex((el) => el.canvas === ev.currentTarget);
+      return winzigo.canvases.findIndex((el) => el.canvas === ev.currentTarget);
     }
 
     // Unmapped:
@@ -212,47 +208,47 @@ const winzigo = {
     canvas.addEventListener("contextmenu", (ev) => ev.preventDefault());
 
     canvas.addEventListener("keydown", (ev) => {
-      events.push(...[1, findCv(ev), convertKeyCode(ev.code)]);
+      winzigo.events.push(...[1, findCv(ev), convertKeyCode(ev.code)]);
     });
 
     canvas.addEventListener("keyup", (ev) => {
-      events.push(...[2, findCv(ev), convertKeyCode(ev.code)]);
+      winzigo.events.push(...[2, findCv(ev), convertKeyCode(ev.code)]);
     });
 
     canvas.addEventListener("mousedown", (ev) => {
-      events.push(...[3, findCv(ev), ev.button]);
+      winzigo.events.push(...[3, findCv(ev), ev.button]);
     });
 
     canvas.addEventListener("mouseup", (ev) => {
-      events.push(...[4, findCv(ev), ev.button]);
+      winzigo.events.push(...[4, findCv(ev), ev.button]);
     });
 
     canvas.addEventListener("mousemove", (ev) => {
-      events.push(...[5, findCv(ev), ev.clientX, ev.clientY]);
+      winzigo.events.push(...[5, findCv(ev), ev.clientX, ev.clientY]);
     });
 
     canvas.addEventListener("mouseenter", (ev) => {
       const cv = findCv(ev);
-      document.title = self.canvases[cv].title;
+      document.title = winzigo.canvases[cv].title;
 
-      events.push(...[6, cv, ev.clientX, ev.clientY]);
+      winzigo.events.push(...[6, cv, ev.clientX, ev.clientY]);
     });
 
     canvas.addEventListener("mouseleave", (ev) => {
-      events.push(...[7, findCv(ev), ev.clientX, ev.clientY]);
+      winzigo.events.push(...[7, findCv(ev), ev.clientX, ev.clientY]);
     });
 
     canvas.addEventListener("wheel", (ev) => {
-      events.push(...[8, findCv(ev), ev.deltaX, ev.deltaY]);
+      winzigo.events.push(...[8, findCv(ev), ev.deltaX, ev.deltaY]);
     });
 
     document.body.appendChild(canvas);
-    return self.canvases.push({ canvas: canvas, title: undefined }) - 1;
+    return winzigo.canvases.push({ canvas: canvas, title: undefined }) - 1;
   },
 
   wzCanvasDeinit(canvas) {
-    if (self.canvases[canvas] != undefined) {
-      self.canvases.splice(canvas, 1);
+    if (winzigo.canvases[canvas] != undefined) {
+      winzigo.canvases.splice(canvas, 1);
     }
   },
 
@@ -260,11 +256,12 @@ const winzigo = {
     const str = len > 0 ?
       winzigo.wzGetString(title, len) :
       original_title;
-    self.canvases[canvas].title = str;
+
+    winzigo.canvases[canvas].title = str;
   },
 
   wzCanvasSetSize(canvas, width, height) {
-    const cv = self.canvases[canvas];
+    const cv = winzigo.canvases[canvas];
     if (width > 0 && height > 0) {
       cv.canvas.width = width;
       cv.canvas.height = height;
@@ -272,10 +269,10 @@ const winzigo = {
   },
 
   wzEventShift() {
-    if (self.events.length < 0)
+    if (winzigo.events.length < 0)
       return 0;
 
-    return self.events.shift();
+    return winzigo.events.shift();
   },
 };
 
