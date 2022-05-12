@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 
 const examples = .{
     "events",
@@ -86,7 +87,13 @@ pub fn build(b: *std.build.Builder) void {
                 .path = .{ .path = "deps/apple_pie/src/apple_pie.zig" },
             });
 
-            const launch = b.addSystemCommand(&.{ "xdg-open", "http://127.0.0.1:8000/application.html" });
+            const launch = b.addSystemCommand(&.{
+                switch (builtin.os.tag) {
+                    .macos, .windows => "open",
+                    else => "xdg-open", // Assume linux-like
+                },
+                "http://127.0.0.1:8000/application.html",
+            });
             launch.step.dependOn(&example.install_step.?.step);
 
             const serve = http_server.run();
