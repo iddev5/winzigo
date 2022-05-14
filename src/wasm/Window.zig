@@ -28,6 +28,9 @@ pub fn setSize(window: *Window, width: u32, height: u32) void {
     js.wzCanvasSetSize(window.id, width, height);
 }
 
-pub fn getSize(_: *Window) types.Dim {
-    return .{ 0, 0 };
+pub fn getSize(window: *Window) types.Dim {
+    return .{
+        .width = @intCast(u16, js.wzCanvasGetWidth(window.id)),
+        .height = @intCast(u16, js.wzCanvasGetHeight(window.id)),
+    };
 }

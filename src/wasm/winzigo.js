@@ -268,6 +268,16 @@ const winzigo = {
     }
   },
 
+  wzCanvasGetWidth(canvas) {
+    const cv = winzigo.canvases[canvas];
+    return cv.canvas.width;
+  },
+
+  wzCanvasGetHeight(canvas) {
+    const cv = winzigo.canvases[canvas];
+    return cv.canvas.height;
+  },
+
   wzEventShift() {
     if (winzigo.events.length < 0)
       return 0;
