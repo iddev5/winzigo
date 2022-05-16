@@ -1,5 +1,6 @@
 const original_title = document.title;
 const text_decoder = new TextDecoder();
+const text_encoder = new TextEncoder();
 let log_buf = "";
 
 const winzigo = {
@@ -11,13 +12,22 @@ const winzigo = {
     this.wasm = wasm;
   },
 
-  wzGetString(str, len) {
+  getString(str, len) {
     const memory = winzigo.wasm.exports.memory.buffer;
     return text_decoder.decode(new Uint8Array(memory, str, len));
   },
 
+  setString(str, buf) {
+    const memory = this.wasm.exports.memory.buffer;
+    const strbuf = text_encoder.encode(str);
+    const outbuf = new Uint8Array(memory, buf, strbuf.length);
+    for (let i = 0; i < strbuf.length; i += 1) {
+        outbuf[i] = strbuf[i];
+    }
+  },
+
   wzLogWrite(str, len) {
-    log_buf += winzigo.wzGetString(str, len);
+    log_buf += winzigo.getString(str, len);
   },
 
   wzLogFlush() {
@@ -26,14 +36,17 @@ const winzigo = {
   },
 
   wzPanic(str, len) {
-    throw Error(winzigo.wzGetString(str, len));
+    throw Error(winzigo.getString(str, len));
   },
 
-  wzCanvasInit(width, height) {
+  wzCanvasInit(width, height, id) {
     let canvas = document.createElement("canvas");
+    canvas.id = "#winzigo-canvas-" + winzigo.canvases.length;
     canvas.width = width;
     canvas.height = height;
     canvas.tabIndex = 1;
+
+    winzigo.setString(canvas.id, id);
 
     let findCv = function (ev) {
       return winzigo.canvases.findIndex((el) => el.canvas === ev.currentTarget);
@@ -254,7 +267,7 @@ const winzigo = {
 
   wzCanvasSetTitle(canvas, title, len) {
     const str = len > 0 ?
-      winzigo.wzGetString(title, len) :
+      winzigo.getString(title, len) :
       original_title;
 
     winzigo.canvases[canvas].title = str;
