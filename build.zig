@@ -73,6 +73,9 @@ pub fn build(b: *std.build.Builder) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardReleaseOptions();
 
+    const no_serve = b.option(bool, "no-serve", "Do not serve with http server (WASM-only)") orelse false;
+    const no_launch = b.option(bool, "no-launch", "Do not launch the browser (WASM-only)") orelse false;
+
     inline for (examples) |eg| {
         const example = createApplication(b, eg, "examples/" ++ eg ++ ".zig", target);
         example.setBuildMode(mode);
@@ -98,11 +101,19 @@ pub fn build(b: *std.build.Builder) void {
 
             const serve = http_server.run();
             serve.addArg("application");
-            serve.step.dependOn(&launch.step);
+            if (no_launch) {
+                serve.step.dependOn(&example.install_step.?.step);
+            } else {
+                serve.step.dependOn(&launch.step);
+            }
             serve.cwd = b.getInstallPath(web_install_dir, "");
 
             const run_step = b.step("run-" ++ eg, "Run the " ++ eg ++ "example");
-            run_step.dependOn(&serve.step);
+            if (no_serve) {
+                run_step.dependOn(&example.install_step.?.step);
+            } else {
+                run_step.dependOn(&serve.step);
+            }
         } else {
             const run_cmd = example.run();
             run_cmd.step.dependOn(&example.install_step.?.step);
