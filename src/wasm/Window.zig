@@ -23,6 +23,7 @@ pub fn init(core: *Core, info: types.WindowInfo) !*Window {
 
 pub fn deinit(window: *Window) void {
     js.wzCanvasDeinit(window.id);
+    window.core.allocator.free(window.selector_id);
 }
 
 pub fn setTitle(window: *Window, title: []const u8) void {
