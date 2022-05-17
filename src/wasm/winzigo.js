@@ -297,6 +297,10 @@ const winzigo = {
 
     return winzigo.events.shift();
   },
+
+  wzPerfNow() {
+    return performance.now();
+  }
 };
 
 export { winzigo };

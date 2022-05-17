@@ -7,3 +7,4 @@ pub extern fn wzCanvasSetSize(canvas: CanvasId, width: u32, height: u32) void;
 pub extern fn wzCanvasGetWidth(canvas: CanvasId) u32;
 pub extern fn wzCanvasGetHeight(canvas: CanvasId) u32;
 pub extern fn wzEventShift() c_int;
+pub extern fn wzPerfNow() f64;

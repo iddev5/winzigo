@@ -3,6 +3,8 @@ const std = @import("std");
 const builtin = @import("builtin");
 const enums = @import("enums.zig");
 
+pub const Timer = @import("Timer.zig");
+
 pub const Button = enums.Button;
 pub const Key = enums.Key;
 
