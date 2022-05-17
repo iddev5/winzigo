@@ -63,14 +63,13 @@ pub fn createApplication(b: *std.build.Builder, name: []const u8, path: []const 
 }
 
 pub fn build(b: *std.build.Builder) void {
-    // Standard target options allows the person running `zig build` to choose
-    // what target to build for. Here we do not override the defaults, which
-    // means any target is allowed, and the default is native. Other options
-    // for restricting supported target set are available.
-    const target = b.standardTargetOptions(.{});
+    const is_wasm = b.option(bool, "wasm", "Equivalent to -Dtarget=wasm32-freestanding-none") orelse false;
 
-    // Standard release options allow the person running `zig build` to select
-    // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
+    const target = if (is_wasm) std.zig.CrossTarget{
+        .cpu_arch = .wasm32,
+        .os_tag = .freestanding,
+        .abi = .none,
+    } else b.standardTargetOptions(.{});
     const mode = b.standardReleaseOptions();
 
     const no_serve = b.option(bool, "no-serve", "Do not serve with http server (WASM-only)") orelse false;
