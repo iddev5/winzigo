@@ -17,7 +17,7 @@ fn getRoot() []const u8 {
 pub fn createApplication(b: *std.build.Builder, name: []const u8, path: []const u8, target: std.zig.CrossTarget) *std.build.LibExeObjStep {
     const lib = std.build.Pkg{
         .name = "winzigo",
-        .path = .{ .path = "src/main.zig" },
+        .source = .{ .path = "src/main.zig" },
     };
 
     if (target.toTarget().cpu.arch == .wasm32) {
@@ -25,7 +25,7 @@ pub fn createApplication(b: *std.build.Builder, name: []const u8, path: []const 
         application.setTarget(target);
         application.addPackage(.{
             .name = "app",
-            .path = .{ .path = path },
+            .source = .{ .path = path },
             .dependencies = &.{lib},
         });
         application.install();
@@ -53,7 +53,7 @@ pub fn createApplication(b: *std.build.Builder, name: []const u8, path: []const 
         application.linkSystemLibrary("xcb");
         application.addPackage(.{
             .name = "app",
-            .path = .{ .path = path },
+            .source = .{ .path = path },
             .dependencies = &.{lib},
         });
         application.install();
@@ -86,7 +86,7 @@ pub fn build(b: *std.build.Builder) void {
             const http_server = b.addExecutable("http-server", "tools/http-server.zig");
             http_server.addPackage(.{
                 .name = "apple_pie",
-                .path = .{ .path = "deps/apple_pie/src/apple_pie.zig" },
+                .source = .{ .path = "deps/apple_pie/src/apple_pie.zig" },
             });
 
             const launch = b.addSystemCommand(&.{
