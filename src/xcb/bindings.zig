@@ -144,7 +144,7 @@ pub const Timestamp = u32;
 pub const KeyCode = u8;
 pub const KeySym = u32;
 
-pub const KeyPressEvent = struct {
+pub const KeyPressEvent = extern struct {
     response_type: u8,
     detail: KeyCode,
     sequence: u16,
@@ -394,7 +394,7 @@ pub fn createWindow(
         width,
         height,
         border_width,
-        @enumToInt(_class),
+        @intFromEnum(_class),
         visual,
         value_mask,
         value_list,
@@ -451,7 +451,7 @@ pub fn changeProperty(
     data_len: u32,
     data: ?*const anyopaque,
 ) VoidCookie {
-    return xcb_change_property(c, @enumToInt(mode), window, property, _type, format, data_len, data);
+    return xcb_change_property(c, @intFromEnum(mode), window, property, _type, format, data_len, data);
 }
 
 extern "xcb" fn xcb_map_window(c: *Connection, window: Window) VoidCookie;
@@ -461,7 +461,7 @@ pub fn mapWindow(c: *Connection, window: Window) VoidCookie {
 
 extern "xcb" fn xcb_flush(c: *Connection) c_int;
 pub fn flush(c: *Connection) i32 {
-    return @intCast(i32, xcb_flush(c));
+    return @as(i32, @intCast(xcb_flush(c)));
 }
 
 extern "xcb" fn xcb_wait_for_event(c: *Connection) ?*GenericEvent;
@@ -475,12 +475,12 @@ pub fn pollForEvent(c: *Connection) ?*GenericEvent {
 }
 
 pub fn eventResponse(event: *GenericEvent) EventType {
-    return @intToEnum(EventType, event.response_type & 0x7f);
+    return @as(EventType, @enumFromInt(event.response_type & 0x7f));
 }
 
 extern "xcb" fn xcb_intern_atom(c: *Connection, only_if_exists: u8, name_len: u16, name: ?[*]const u8) InternAtomCookie;
 pub fn internAtom(c: *Connection, only_if_exists: bool, name_len: u16, name: []const u8) InternAtomCookie {
-    return xcb_intern_atom(c, @boolToInt(only_if_exists), name_len, name.ptr);
+    return xcb_intern_atom(c, @intFromBool(only_if_exists), name_len, name.ptr);
 }
 
 extern "xcb" fn xcb_intern_atom_reply(c: *Connection, cookie: InternAtomCookie, e: ?**GenericError) *InternAtomReply;

@@ -27,7 +27,7 @@ pub fn main() anyerror!void {
         if (core.getKeyDown(.a)) {
             std.log.info("key .a is currently down", .{});
         }
-        std.os.nanosleep(0, 16000000);
+        std.posix.nanosleep(0, 16000000);
     }
     std.log.info("All your inputs are belong to us.", .{});
 }

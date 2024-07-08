@@ -32,20 +32,20 @@ pub fn init(core: *Core, info: types.WindowInfo) !*Window {
         null,
     );
 
-    var value = @enumToInt(xcb.EventMask.KeyPress);
-    value |= @enumToInt(xcb.EventMask.KeyRelease);
-    value |= @enumToInt(xcb.EventMask.ButtonPress);
-    value |= @enumToInt(xcb.EventMask.ButtonRelease);
-    value |= @enumToInt(xcb.EventMask.PointerMotion);
-    value |= @enumToInt(xcb.EventMask.FocusChange);
-    value |= @enumToInt(xcb.EventMask.EnterWindow);
-    value |= @enumToInt(xcb.EventMask.LeaveWindow);
-    value |= @enumToInt(xcb.EventMask.StructureNotify);
+    var value = @intFromEnum(xcb.EventMask.KeyPress);
+    value |= @intFromEnum(xcb.EventMask.KeyRelease);
+    value |= @intFromEnum(xcb.EventMask.ButtonPress);
+    value |= @intFromEnum(xcb.EventMask.ButtonRelease);
+    value |= @intFromEnum(xcb.EventMask.PointerMotion);
+    value |= @intFromEnum(xcb.EventMask.FocusChange);
+    value |= @intFromEnum(xcb.EventMask.EnterWindow);
+    value |= @intFromEnum(xcb.EventMask.LeaveWindow);
+    value |= @intFromEnum(xcb.EventMask.StructureNotify);
 
     _ = xcb.changeWindowAttributes(
         core.connection,
         self.window,
-        @enumToInt(xcb.Cw.EventMask),
+        @intFromEnum(xcb.Cw.EventMask),
         &[_]u32{value},
     );
 
@@ -66,21 +66,21 @@ pub fn setTitle(window: *Window, title: []const u8) void {
         window.core.connection,
         .Replace,
         window.window,
-        @enumToInt(xcb.Defines.Atom.WmName),
-        @enumToInt(xcb.Defines.Atom.String),
+        @intFromEnum(xcb.Defines.Atom.WmName),
+        @intFromEnum(xcb.Defines.Atom.String),
         @bitSizeOf(u8),
-        @intCast(u32, title.len),
-        @ptrCast(*const anyopaque, title),
+        @as(u32, @intCast(title.len)),
+        @as(*const anyopaque, @ptrCast(title)),
     );
 }
 
 pub fn setSize(window: *Window, width: u16, height: u16) void {
-    const values: []u16 = &.{ width, height };
+    const pair: [2]c_int = .{ width, height };
     _ = xcb.configureWindow(
         window.core.connection,
         window.window,
-        @enumToInt(xcb.Defines.Config.WindowWidth) | @enumToInt(xcb.Defines.Config.WindowHeight),
-        @ptrCast(*anyopaque, values),
+        @intFromEnum(xcb.Defines.Config.WindowWidth) | @intFromEnum(xcb.Defines.Config.WindowHeight),
+        @as(*anyopaque, @ptrCast(@constCast(&pair))),
     );
     window.width = width;
     window.height = height;

@@ -52,7 +52,6 @@ pub const WindowInfo = struct {
 };
 
 fn CoreType() type {
-    if (builtin.cpu.arch == .wasm32) return @import("wasm/Core.zig");
     return @import("xcb/Core.zig");
 }
 

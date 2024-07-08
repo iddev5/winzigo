@@ -5,7 +5,7 @@ pub fn main() anyerror!void {
     defer app.deinit();
 
     while (true) {
-        var success = try app.update();
+        const success = try app.update();
         if (!success) {
             break;
         }

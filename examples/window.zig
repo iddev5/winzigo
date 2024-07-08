@@ -15,7 +15,7 @@ pub fn init() !void {
     errdefer window.deinit();
 
     window.setTitle("Hello");
-    window.setSize(512, 512);
+    window.setSize(640, 480);
 }
 
 pub fn update() !bool {
