@@ -2,6 +2,7 @@ const Core = @This();
 const std = @import("std");
 const builtin = @import("builtin");
 const enums = @import("enums.zig");
+pub const egl = @import("egl.zig");
 
 pub const Button = enums.Button;
 pub const Key = enums.Key;
@@ -110,5 +111,9 @@ pub const Window = struct {
 
     pub fn getSize(window: *Window) Dim {
         return window.internal.getSize();
+    }
+
+    pub fn createGLContext(window: *Window) !egl.GLContext {
+        return try window.internal.createGLContext();
     }
 };

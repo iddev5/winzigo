@@ -2,8 +2,10 @@ const Window = @This();
 
 const std = @import("std");
 const xcb = @import("bindings.zig");
+const EGL = @import("egl_bindings.zig");
 const Core = @import("Core.zig");
 const types = @import("../main.zig");
+const egl_types = @import("../egl.zig");
 
 core: *Core,
 window: u32 = undefined,
@@ -92,4 +94,61 @@ pub fn getSize(window: *Window) types.Dim {
     defer std.c.free(reply);
 
     return .{ .width = reply.width, .height = reply.height };
+}
+
+pub fn createGLContext(win: *Window) !egl_types.GLContext {
+    const egl = try EGL.loadEGL();
+
+    const display = egl.getPlatformDisplay(
+        EGL.PLATFORM_XCB_EXT,
+        win.core.connection,
+        &.{ EGL.PLATFORM_XCB_SCREEN_EXT, 0, EGL.NONE },
+    ) orelse return error.NoEglDisplay;
+
+    const version = try egl.initialize(display);
+    if (version[0] < 1 or (version[0] == 1 and version[1] < 5))
+        return error.IncorrectVersion;
+
+    try egl.bindApi(.opengl);
+
+    const config_attribs = &[_]EGL.Attrib{
+        EGL.surface_type,      EGL.window_bit,
+        EGL.conformant,        EGL.opengl_bit,
+        EGL.renderable_type,   EGL.opengl_bit,
+        EGL.color_buffer_type, EGL.rgb_buffer,
+
+        EGL.red_size,          8,
+        EGL.green_size,        8,
+        EGL.blue_size,         8,
+        EGL.depth_size,        24,
+        EGL.stencil_size,      8,
+
+        EGL.NONE,
+    };
+    const config = try egl.chooseConfig(display, config_attribs);
+
+    const surface_attribs = &[_]EGL.Attrib{
+        EGL.colorspace,    EGL.colorspace_linear,
+        EGL.render_buffer, EGL.back_buffer,
+
+        EGL.NONE,
+    };
+    const surface = try egl.createWindowSurface(display, config, @intCast(win.window), surface_attribs);
+
+    const context_attribs = &[_]EGL.Attrib{
+        EGL.context_major_version,       4,
+        EGL.context_minor_version,       1,
+        EGL.context_opengl_profile_mask, EGL.context_opengl_core_profile_bit,
+
+        EGL.NONE,
+    };
+    const context = try egl.createContext(display, config, null, context_attribs);
+    try egl.makeCurrent(display, surface, surface, context);
+
+    return .{
+        .egl = egl,
+        .display = display,
+        .surface = surface,
+        .context = context,
+    };
 }
