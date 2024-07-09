@@ -49,16 +49,16 @@ pub const Api = enum(i32) {
     opengl = 0x30a2,
 };
 
-eglGetProcAddress: *const fn (procname: [*:0]const u8) *anyopaque,
-eglInitialize: *const fn (display: Display, major: *c_int, minor: *c_int) bool,
-eglBindAPI: *const fn (api: c_int) bool,
-eglChooseConfig: *const fn (display: Display, attrib_list: [*]const Attrib, configs: *Config, config_size: c_int, num_config: *c_int) bool,
-eglCreateWindowSurface: *const fn (display: Display, config: Config, win: NativeWindowType, attrib_list: [*]const Attrib) ?Surface,
-eglCreateContext: *const fn (display: Display, config: Config, share_context: ?Context, attrib_list: [*]const Attrib) ?Context,
-eglMakeCurrent: *const fn (display: Display, draw: Surface, read: Surface, ctx: Context) bool,
-eglSwapBuffers: *const fn (display: Display, surface: Surface) bool,
+eglGetProcAddress: *const fn (procname: [*:0]const u8) callconv(.C) *anyopaque,
+eglInitialize: *const fn (display: Display, major: *c_int, minor: *c_int) callconv(.C) bool,
+eglBindAPI: *const fn (api: c_int) callconv(.C) bool,
+eglChooseConfig: *const fn (display: Display, attrib_list: [*]const Attrib, configs: *Config, config_size: c_int, num_config: *c_int) callconv(.C) bool,
+eglCreateWindowSurface: *const fn (display: Display, config: Config, win: NativeWindowType, attrib_list: [*]const Attrib) callconv(.C) ?Surface,
+eglCreateContext: *const fn (display: Display, config: Config, share_context: ?Context, attrib_list: [*]const Attrib) callconv(.C) ?Context,
+eglMakeCurrent: *const fn (display: Display, draw: Surface, read: Surface, ctx: Context) callconv(.C) bool,
+eglSwapBuffers: *const fn (display: Display, surface: Surface) callconv(.C) bool,
 
-eglGetPlatformDisplayEXT: *const fn (platform: c_int, native_display: *anyopaque, attrib_list: [*]const Attrib) ?Display,
+eglGetPlatformDisplayEXT: *const fn (platform: c_int, native_display: *anyopaque, attrib_list: [*]const Attrib) callconv(.C) ?Display,
 
 pub fn loadEGL() !EGL {
     var egl: EGL = undefined;
