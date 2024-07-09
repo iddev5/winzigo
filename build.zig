@@ -33,7 +33,6 @@ pub fn createApplication(b: *std.Build, name: []const u8, path: []const u8, mode
         });
 
         exe.linkLibC();
-        exe.linkSystemLibrary("xcb");
         exe.root_module.addImport("winzigo", lib);
         b.installArtifact(exe);
 
@@ -52,7 +51,6 @@ pub fn createApplication(b: *std.Build, name: []const u8, path: []const u8, mode
     });
 
     application.linkLibC();
-    application.linkSystemLibrary("xcb");
     application.root_module.addImport("app", app);
     b.installArtifact(application);
 

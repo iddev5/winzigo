@@ -1,20 +1,23 @@
 const Core = @This();
 const std = @import("std");
-const xcb = @import("bindings.zig");
+const Xcb = @import("bindings.zig");
 pub const Window = @import("Window.zig");
 
-connection: *xcb.Connection,
-setup: *xcb.Setup,
-screen: *xcb.Screen,
+xcb: Xcb,
+connection: *Xcb.Connection,
+setup: *Xcb.Setup,
+screen: *Xcb.Screen,
 window: *Window,
-wm_protocols: *xcb.InternAtomReply,
-wm_delete_window: *xcb.InternAtomReply,
+wm_protocols: *Xcb.InternAtomReply,
+wm_delete_window: *Xcb.InternAtomReply,
 allocator: std.mem.Allocator,
 
 pub fn init(allocator: std.mem.Allocator) !*Core {
     var core = try allocator.create(Core);
     errdefer allocator.destroy(core);
 
+    const xcb = try Xcb.loadXcb();
+    core.xcb = xcb;
     core.allocator = allocator;
     core.connection = try xcb.connect("", null);
     core.setup = try xcb.getSetup(core.connection);
@@ -37,13 +40,13 @@ pub fn init(allocator: std.mem.Allocator) !*Core {
 pub fn deinit(core: *Core) void {
     std.c.free(core.wm_protocols);
     std.c.free(core.wm_delete_window);
-    xcb.disconnect(core.connection);
+    core.xcb.disconnect(core.connection);
     core.allocator.destroy(core);
 }
 
 pub fn createWindow(core: *Core, info: types.WindowInfo) !*Window {
     var window = try Window.init(core, info);
-    _ = xcb.changeProperty(
+    _ = core.xcb.changeProperty(
         core.connection,
         .Replace,
         window.window,
@@ -61,16 +64,16 @@ pub fn createWindow(core: *Core, info: types.WindowInfo) !*Window {
 }
 
 pub fn pollEvent(core: *Core) ?Event {
-    _ = xcb.flush(core.connection);
-    const event = xcb.pollForEvent(core.connection);
+    _ = core.xcb.flush(core.connection);
+    const event = core.xcb.pollForEvent(core.connection);
     defer if (event) |ev| std.c.free(ev);
 
     return core.handleEvent(event);
 }
 
 pub fn waitEvent(core: *Core) ?Event {
-    _ = xcb.flush(core.connection);
-    const event = xcb.waitForEvent(core.connection);
+    _ = core.xcb.flush(core.connection);
+    const event = core.xcb.waitForEvent(core.connection);
     defer if (event) |ev| std.c.free(ev);
 
     return core.handleEvent(event);
@@ -81,11 +84,11 @@ pub fn getKeyDown(core: *Core, key: Key) bool {
     const keysym: u32 = core.translateKey(key);
 
     // Get keysyms from keycode
-    const keyboard_mapping_req = xcb.getKeyboardMapping(core.connection, core.setup.min_keycode, core.setup.max_keycode - core.setup.min_keycode + 1);
-    const keyboard_mapping = xcb.getKeyboardMappingReply(core.connection, keyboard_mapping_req, null);
+    const keyboard_mapping_req = core.xcb.getKeyboardMapping(core.connection, core.setup.min_keycode, core.setup.max_keycode - core.setup.min_keycode + 1);
+    const keyboard_mapping = core.xcb.getKeyboardMappingReply(core.connection, keyboard_mapping_req, null);
     defer std.c.free(keyboard_mapping);
 
-    const keysyms = xcb.getKeyboardMappingKeysyms(keyboard_mapping);
+    const keysyms = core.xcb.getKeyboardMappingKeysyms(keyboard_mapping);
 
     // Convert keysym to keycode
     var keycode: u8 = 0;
@@ -98,8 +101,8 @@ pub fn getKeyDown(core: *Core, key: Key) bool {
     }
 
     // Get all key states
-    const cookie = xcb.queryKeymap(core.connection);
-    const key_states = xcb.queryKeymapReply(core.connection, cookie, null);
+    const cookie = core.xcb.queryKeymap(core.connection);
+    const key_states = core.xcb.queryKeymapReply(core.connection, cookie, null);
     defer std.c.free(key_states);
 
     // Get the specific key state from keycode
@@ -135,11 +138,11 @@ inline fn translateButton(core: *Core, but: u8) Button {
 const xk = @import("keys.zig");
 
 inline fn translateKeycode(core: *Core, keycode: u8) Key {
-    const keyboard_mapping_req = xcb.getKeyboardMapping(core.connection, keycode, 1);
-    const keyboard_mapping = xcb.getKeyboardMappingReply(core.connection, keyboard_mapping_req, null);
+    const keyboard_mapping_req = core.xcb.getKeyboardMapping(core.connection, keycode, 1);
+    const keyboard_mapping = core.xcb.getKeyboardMappingReply(core.connection, keyboard_mapping_req, null);
     defer std.c.free(keyboard_mapping);
 
-    const keysyms = xcb.getKeyboardMappingKeysyms(keyboard_mapping);
+    const keysyms = core.xcb.getKeyboardMappingKeysyms(keyboard_mapping);
 
     return switch (keysyms[0]) {
         xk.XK_a => .a,
@@ -399,18 +402,18 @@ inline fn translateKey(core: *Core, key: Key) u32 {
     };
 }
 
-fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
+fn handleEvent(core: *Core, event: ?*Xcb.GenericEvent) ?Event {
     if (event) |ev| {
-        switch (xcb.eventResponse(ev)) {
+        switch (core.xcb.eventResponse(ev)) {
             .KeyPress => {
-                const kp = @as(*xcb.KeyPressEvent, @ptrCast(ev));
+                const kp = @as(*Xcb.KeyPressEvent, @ptrCast(ev));
                 return Event{
                     .window = xcbToWindow(core.window),
                     .ev = .{ .key_press = .{ .key = core.translateKeycode(kp.detail) } },
                 };
             },
             .KeyRelease => {
-                const kp = @as(*xcb.KeyReleaseEvent, @ptrCast(ev));
+                const kp = @as(*Xcb.KeyReleaseEvent, @ptrCast(ev));
                 const key = core.translateKeycode(kp.detail);
 
                 if (core.pollEvent()) |next| {
@@ -425,7 +428,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 };
             },
             .ButtonPress => {
-                const bp = @as(*xcb.ButtonPressEvent, @ptrCast(ev));
+                const bp = @as(*Xcb.ButtonPressEvent, @ptrCast(ev));
                 switch (bp.detail) {
                     1, 2, 3 => return Event{
                         .window = xcbToWindow(core.window),
@@ -443,7 +446,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 }
             },
             .ButtonRelease => {
-                const br = @as(*xcb.ButtonReleaseEvent, @ptrCast(ev));
+                const br = @as(*Xcb.ButtonReleaseEvent, @ptrCast(ev));
                 switch (br.detail) {
                     1, 2, 3 => return Event{
                         .window = xcbToWindow(core.window),
@@ -453,7 +456,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 }
             },
             .FocusIn => {
-                const fi = @as(*xcb.FocusInEvent, @ptrCast(ev));
+                const fi = @as(*Xcb.FocusInEvent, @ptrCast(ev));
                 if (fi.mode != .grab and fi.mode != .ungrab) {
                     return Event{
                         .window = xcbToWindow(core.window),
@@ -462,7 +465,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 }
             },
             .FocusOut => {
-                const fo = @as(*xcb.FocusOutEvent, @ptrCast(ev));
+                const fo = @as(*Xcb.FocusOutEvent, @ptrCast(ev));
                 if (fo.mode != .grab and fo.mode != .ungrab) {
                     return Event{
                         .window = xcbToWindow(core.window),
@@ -471,21 +474,21 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 }
             },
             .EnterNotify => {
-                const en = @as(*xcb.EnterNotifyEvent, @ptrCast(ev));
+                const en = @as(*Xcb.EnterNotifyEvent, @ptrCast(ev));
                 return Event{
                     .window = xcbToWindow(core.window),
                     .ev = .{ .mouse_enter = .{ .x = en.event_x, .y = en.event_y } },
                 };
             },
             .LeaveNotify => {
-                const ln = @as(*xcb.LeaveNotifyEvent, @ptrCast(ev));
+                const ln = @as(*Xcb.LeaveNotifyEvent, @ptrCast(ev));
                 return Event{
                     .window = xcbToWindow(core.window),
                     .ev = .{ .mouse_leave = .{ .x = ln.event_x, .y = ln.event_y } },
                 };
             },
             .MotionNotify => {
-                const mn = @as(*xcb.MotionNotifyEvent, @ptrCast(ev));
+                const mn = @as(*Xcb.MotionNotifyEvent, @ptrCast(ev));
                 return Event{
                     .window = xcbToWindow(core.window),
                     .ev = .{ .mouse_motion = .{
@@ -495,7 +498,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 };
             },
             .ConfigureNotify => {
-                const cn = @as(*xcb.ConfigureNotifyEvent, @ptrCast(ev));
+                const cn = @as(*Xcb.ConfigureNotifyEvent, @ptrCast(ev));
                 const window = xcbToWindow(core.window);
 
                 if (core.window.width != cn.width and core.window.height != cn.height) {
@@ -513,7 +516,7 @@ fn handleEvent(core: *Core, event: ?*xcb.GenericEvent) ?Event {
                 }
             },
             .ClientMessage => {
-                const cm = @as(*xcb.ClientMessageEvent, @ptrCast(event));
+                const cm = @as(*Xcb.ClientMessageEvent, @ptrCast(event));
                 if (cm.data.data32[0] == core.wm_delete_window.atom) {
                     return Event{
                         .window = xcbToWindow(core.window),

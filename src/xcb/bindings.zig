@@ -1,7 +1,6 @@
-const xcb_connection_t = opaque {};
-const xcb_window_t = opaque {};
-const xcb_colormap_t = opaque {};
-const xcb_visualid_t = opaque {};
+const std = @import("std");
+
+const Xcb = @This();
 
 pub const Defines = struct {
     pub const CopyFromParent = 0;
@@ -15,7 +14,7 @@ pub const Defines = struct {
     };
 };
 
-pub const Connection = xcb_connection_t;
+pub const Connection = opaque {};
 pub const Setup = extern struct {
     status: u8,
     pad0: u8,
@@ -323,53 +322,68 @@ pub const GeometryReply = extern struct {
     border_width: u16,
 };
 
-extern "xcb" fn xcb_connect(displayname: [*]const u8, screenp: ?*c_int) ?*Connection;
-pub fn connect(displayname: []const u8, screenp: ?*c_int) !*Connection {
-    if (xcb_connect(displayname.ptr, screenp)) |connection| {
+xcb_connect: *const fn (displayname: [*]const u8, screenp: ?*c_int) callconv(.C) ?*Connection,
+xcb_disconnect: *const fn (c: *Connection) callconv(.C) void,
+xcb_get_setup: *const fn (c: *Connection) callconv(.C) ?*Setup,
+xcb_setup_roots_iterator: *const fn (r: *const Setup) callconv(.C) ScreenIterator,
+xcb_generate_id: *const fn (c: *Connection) callconv(.C) Window,
+xcb_create_window: *const fn (c: *Connection, depth: u8, wid: Window, parent: Window, x: i16, y: i16, width: u16, height: u16, border_width: u16, _class: u16, visual: VisualId, value_mask: u32, value_list: ?[*]const u32) callconv(.C) VoidCookie,
+xcb_destroy_window: *const fn (c: *Connection, window: Window) callconv(.C) void,
+xcb_change_window_attributes: *const fn (c: *Connection, window: Window, value_mask: u32, value_list: ?[*]const u32) callconv(.C) VoidCookie,
+xcb_configure_window: *const fn (c: *Connection, window: Window, value_mask: u16, value_list: ?*const anyopaque) callconv(.C) VoidCookie,
+xcb_change_property: *const fn (c: *Connection, mode: u8, window: Window, property: Atom, _type: Atom, format: u8, data_len: u32, data: ?*const anyopaque) callconv(.C) VoidCookie,
+xcb_map_window: *const fn (c: *Connection, window: Window) callconv(.C) VoidCookie,
+xcb_flush: *const fn (c: *Connection) callconv(.C) c_int,
+xcb_wait_for_event: *const fn (c: *Connection) callconv(.C) ?*GenericEvent,
+xcb_poll_for_event: *const fn (c: *Connection) callconv(.C) ?*GenericEvent,
+xcb_intern_atom: *const fn (c: *Connection, only_if_exists: u8, name_len: u16, name: ?[*]const u8) callconv(.C) InternAtomCookie,
+xcb_intern_atom_reply: *const fn (c: *Connection, cookie: InternAtomCookie, e: ?**GenericError) callconv(.C) *InternAtomReply,
+xcb_query_keymap: *const fn (c: *Connection) callconv(.C) QueryKeymapCookie,
+xcb_query_keymap_reply: *const fn (c: *Connection, cookie: QueryKeymapCookie, e: ?**GenericError) callconv(.C) *QueryKeymapReply,
+xcb_get_keyboard_mapping: *const fn (c: *Connection, first_keycode: KeyCode, count: u8) callconv(.C) KeyboardMappingCookie,
+xcb_get_keyboard_mapping_reply: *const fn (c: *Connection, cookie: KeyboardMappingCookie, e: ?**GenericError) callconv(.C) *KeyboardMappingReply,
+xcb_get_keyboard_mapping_keysyms: *const fn (r: *const KeyboardMappingReply) callconv(.C) [*]KeySym,
+xcb_get_geometry: *const fn (c: *Connection, window: Window) callconv(.C) GeometryCookie,
+xcb_get_geometry_reply: *const fn (c: *Connection, cookie: GeometryCookie, e: ?**GenericError) callconv(.C) *GeometryReply,
+
+pub fn loadXcb() !Xcb {
+    var xcb: Xcb = undefined;
+    var lib = try std.DynLib.open("libxcb.so");
+    inline for (@typeInfo(Xcb).Struct.fields) |field| {
+        @field(xcb, field.name) = lib.lookup(field.type, field.name) orelse return error.SymbolNotFound;
+    }
+
+    return xcb;
+}
+
+pub fn connect(xcb: *const Xcb, displayname: []const u8, screenp: ?*c_int) !*Connection {
+    if (xcb.xcb_connect(displayname.ptr, screenp)) |connection| {
         return connection;
     }
     return error.CannotConnectToServer;
 }
 
-extern "xcb" fn xcb_disconnect(c: *Connection) void;
-pub fn disconnect(c: *Connection) void {
-    return xcb_disconnect(c);
+pub fn disconnect(xcb: *const Xcb, c: *Connection) void {
+    return xcb.xcb_disconnect(c);
 }
 
-extern "xcb" fn xcb_get_setup(c: *Connection) ?*Setup;
-pub fn getSetup(c: *Connection) !*Setup {
-    if (xcb_get_setup(c)) |setup| {
+pub fn getSetup(xcb: *const Xcb, c: *Connection) !*Setup {
+    if (xcb.xcb_get_setup(c)) |setup| {
         return setup;
     }
     return error.CannotRetriveSetup;
 }
 
-extern "xcb" fn xcb_setup_roots_iterator(r: *const Setup) ScreenIterator;
-pub fn setupRootsIterator(r: *const Setup) ScreenIterator {
-    return xcb_setup_roots_iterator(r);
+pub fn setupRootsIterator(xcb: *const Xcb, r: *const Setup) ScreenIterator {
+    return xcb.xcb_setup_roots_iterator(r);
 }
 
-extern "xcb" fn xcb_generate_id(c: *Connection) Window;
-pub fn generateId(c: *Connection) Window {
-    return xcb_generate_id(c);
+pub fn generateId(xcb: *const Xcb, c: *Connection) Window {
+    return xcb.xcb_generate_id(c);
 }
 
-extern "xcb" fn xcb_create_window(
-    c: *Connection,
-    depth: u8,
-    wid: Window,
-    parent: Window,
-    x: i16,
-    y: i16,
-    width: u16,
-    height: u16,
-    border_width: u16,
-    _class: u16,
-    visual: VisualId,
-    value_mask: u32,
-    value_list: ?[*]const u32,
-) VoidCookie;
 pub fn createWindow(
+    xcb: *const Xcb,
     c: *Connection,
     depth: u8,
     wid: Window,
@@ -384,7 +398,7 @@ pub fn createWindow(
     value_mask: u32,
     value_list: ?[*]const u32,
 ) VoidCookie {
-    return xcb_create_window(
+    return xcb.xcb_create_window(
         c,
         depth,
         wid,
@@ -401,47 +415,26 @@ pub fn createWindow(
     );
 }
 
-extern "xcb" fn xcb_destroy_window(c: *Connection, window: Window) void;
-pub fn destroyWindow(c: *Connection, window: Window) void {
-    return xcb_destroy_window(c, window);
+pub fn destroyWindow(xcb: *const Xcb, c: *Connection, window: Window) void {
+    return xcb.xcb_destroy_window(c, window);
 }
 
-extern "xcb" fn xcb_change_window_attributes(
-    c: *Connection,
-    window: Window,
-    value_mask: u32,
-    value_list: ?[*]const u32,
-) VoidCookie;
-pub fn changeWindowAttributes(c: *Connection, window: Window, value_mask: u32, value_list: []const u32) VoidCookie {
-    return xcb_change_window_attributes(c, window, value_mask, value_list.ptr);
+pub fn changeWindowAttributes(xcb: *const Xcb, c: *Connection, window: Window, value_mask: u32, value_list: []const u32) VoidCookie {
+    return xcb.xcb_change_window_attributes(c, window, value_mask, value_list.ptr);
 }
 
-extern "xcb" fn xcb_configure_window(
-    c: *Connection,
-    window: Window,
-    value_mask: u16,
-    value_list: ?*const anyopaque,
-) VoidCookie;
 pub fn configureWindow(
+    xcb: *const Xcb,
     c: *Connection,
     window: Window,
     value_mask: u16,
     value_list: ?*const anyopaque,
 ) VoidCookie {
-    return xcb_configure_window(c, window, value_mask, value_list);
+    return xcb.xcb_configure_window(c, window, value_mask, value_list);
 }
 
-extern "xcb" fn xcb_change_property(
-    c: *Connection,
-    mode: u8,
-    window: Window,
-    property: Atom,
-    _type: Atom,
-    format: u8,
-    data_len: u32,
-    data: ?*const anyopaque,
-) VoidCookie;
 pub fn changeProperty(
+    xcb: *const Xcb,
     c: *Connection,
     mode: PropMode,
     window: Window,
@@ -451,74 +444,62 @@ pub fn changeProperty(
     data_len: u32,
     data: ?*const anyopaque,
 ) VoidCookie {
-    return xcb_change_property(c, @intFromEnum(mode), window, property, _type, format, data_len, data);
+    return xcb.xcb_change_property(c, @intFromEnum(mode), window, property, _type, format, data_len, data);
 }
 
-extern "xcb" fn xcb_map_window(c: *Connection, window: Window) VoidCookie;
-pub fn mapWindow(c: *Connection, window: Window) VoidCookie {
-    return xcb_map_window(c, window);
+pub fn mapWindow(xcb: *const Xcb, c: *Connection, window: Window) VoidCookie {
+    return xcb.xcb_map_window(c, window);
 }
 
-extern "xcb" fn xcb_flush(c: *Connection) c_int;
-pub fn flush(c: *Connection) i32 {
-    return @as(i32, @intCast(xcb_flush(c)));
+pub fn flush(xcb: *const Xcb, c: *Connection) i32 {
+    return @as(i32, @intCast(xcb.xcb_flush(c)));
 }
 
-extern "xcb" fn xcb_wait_for_event(c: *Connection) ?*GenericEvent;
-pub fn waitForEvent(c: *Connection) ?*GenericEvent {
-    return xcb_wait_for_event(c);
+pub fn waitForEvent(xcb: *const Xcb, c: *Connection) ?*GenericEvent {
+    return xcb.xcb_wait_for_event(c);
 }
 
-extern "xcb" fn xcb_poll_for_event(c: *Connection) ?*GenericEvent;
-pub fn pollForEvent(c: *Connection) ?*GenericEvent {
-    return xcb_poll_for_event(c);
+pub fn pollForEvent(xcb: *const Xcb, c: *Connection) ?*GenericEvent {
+    return xcb.xcb_poll_for_event(c);
 }
 
-pub fn eventResponse(event: *GenericEvent) EventType {
+pub fn eventResponse(xcb: *const Xcb, event: *GenericEvent) EventType {
+    _ = xcb;
     return @as(EventType, @enumFromInt(event.response_type & 0x7f));
 }
 
-extern "xcb" fn xcb_intern_atom(c: *Connection, only_if_exists: u8, name_len: u16, name: ?[*]const u8) InternAtomCookie;
-pub fn internAtom(c: *Connection, only_if_exists: bool, name_len: u16, name: []const u8) InternAtomCookie {
-    return xcb_intern_atom(c, @intFromBool(only_if_exists), name_len, name.ptr);
+pub inline fn internAtom(xcb: *const Xcb, c: *Connection, only_if_exists: bool, name_len: u16, name: []const u8) InternAtomCookie {
+    return xcb.xcb_intern_atom(c, @intFromBool(only_if_exists), name_len, name.ptr);
 }
 
-extern "xcb" fn xcb_intern_atom_reply(c: *Connection, cookie: InternAtomCookie, e: ?**GenericError) *InternAtomReply;
-pub fn internAtomReply(c: *Connection, cookie: InternAtomCookie, e: ?**GenericError) *InternAtomReply {
-    return xcb_intern_atom_reply(c, cookie, e);
+pub fn internAtomReply(xcb: *const Xcb, c: *Connection, cookie: InternAtomCookie, e: ?**GenericError) *InternAtomReply {
+    return xcb.xcb_intern_atom_reply(c, cookie, e);
 }
 
-extern "xcb" fn xcb_query_keymap(c: *Connection) QueryKeymapCookie;
-pub fn queryKeymap(c: *Connection) QueryKeymapCookie {
-    return xcb_query_keymap(c);
+pub fn queryKeymap(xcb: *const Xcb, c: *Connection) QueryKeymapCookie {
+    return xcb.xcb_query_keymap(c);
 }
 
-extern "xcb" fn xcb_query_keymap_reply(c: *Connection, cookie: QueryKeymapCookie, e: ?**GenericError) *QueryKeymapReply;
-pub fn queryKeymapReply(c: *Connection, cookie: QueryKeymapCookie, e: ?**GenericError) *QueryKeymapReply {
-    return xcb_query_keymap_reply(c, cookie, e);
+pub fn queryKeymapReply(xcb: *const Xcb, c: *Connection, cookie: QueryKeymapCookie, e: ?**GenericError) *QueryKeymapReply {
+    return xcb.xcb_query_keymap_reply(c, cookie, e);
 }
 
-extern "xcb" fn xcb_get_keyboard_mapping(c: *Connection, first_keycode: KeyCode, count: u8) KeyboardMappingCookie;
-pub fn getKeyboardMapping(c: *Connection, first_keycode: KeyCode, count: u8) KeyboardMappingCookie {
-    return xcb_get_keyboard_mapping(c, first_keycode, count);
+pub fn getKeyboardMapping(xcb: *const Xcb, c: *Connection, first_keycode: KeyCode, count: u8) KeyboardMappingCookie {
+    return xcb.xcb_get_keyboard_mapping(c, first_keycode, count);
 }
 
-extern "xcb" fn xcb_get_keyboard_mapping_reply(c: *Connection, cookie: KeyboardMappingCookie, e: ?**GenericError) *KeyboardMappingReply;
-pub fn getKeyboardMappingReply(c: *Connection, cookie: KeyboardMappingCookie, e: ?**GenericError) *KeyboardMappingReply {
-    return xcb_get_keyboard_mapping_reply(c, cookie, e);
+pub fn getKeyboardMappingReply(xcb: *const Xcb, c: *Connection, cookie: KeyboardMappingCookie, e: ?**GenericError) *KeyboardMappingReply {
+    return xcb.xcb_get_keyboard_mapping_reply(c, cookie, e);
 }
 
-extern "xcb" fn xcb_get_keyboard_mapping_keysyms(r: *const KeyboardMappingReply) [*]KeySym;
-pub fn getKeyboardMappingKeysyms(r: *const KeyboardMappingReply) [*]KeySym {
-    return xcb_get_keyboard_mapping_keysyms(r);
+pub fn getKeyboardMappingKeysyms(xcb: *const Xcb, r: *const KeyboardMappingReply) [*]KeySym {
+    return xcb.xcb_get_keyboard_mapping_keysyms(r);
 }
 
-extern "xcb" fn xcb_get_geometry(c: *Connection, window: Window) GeometryCookie;
-pub fn getGeometry(c: *Connection, window: Window) GeometryCookie {
-    return xcb_get_geometry(c, window);
+pub fn getGeometry(xcb: *const Xcb, c: *Connection, window: Window) GeometryCookie {
+    return xcb.xcb_get_geometry(c, window);
 }
 
-extern "xcb" fn xcb_get_geometry_reply(c: *Connection, cookie: GeometryCookie, e: ?**GenericError) *GeometryReply;
-pub fn getGeometryReply(c: *Connection, cookie: GeometryCookie, e: ?**GenericError) *GeometryReply {
-    return xcb_get_geometry_reply(c, cookie, e);
+pub fn getGeometryReply(xcb: *const Xcb, c: *Connection, cookie: GeometryCookie, e: ?**GenericError) *GeometryReply {
+    return xcb.xcb_get_geometry_reply(c, cookie, e);
 }

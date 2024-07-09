@@ -1,7 +1,7 @@
 const Window = @This();
 
 const std = @import("std");
-const xcb = @import("bindings.zig");
+const Xcb = @import("bindings.zig");
 const EGL = @import("egl_bindings.zig");
 const Core = @import("Core.zig");
 const types = @import("../main.zig");
@@ -17,8 +17,9 @@ pub fn init(core: *Core, info: types.WindowInfo) !*Window {
     errdefer core.allocator.destroy(self);
 
     self.core = core;
-    self.window = xcb.generateId(core.connection);
-    _ = xcb.createWindow(
+    self.window = core.xcb.generateId(core.connection);
+
+    _ = core.xcb.createWindow(
         core.connection,
         0,
         self.window,
@@ -28,30 +29,30 @@ pub fn init(core: *Core, info: types.WindowInfo) !*Window {
         info.width,
         info.height,
         0,
-        xcb.WindowClass.InputOutput,
+        Xcb.WindowClass.InputOutput,
         core.screen.root_visual,
         0,
         null,
     );
 
-    var value = @intFromEnum(xcb.EventMask.KeyPress);
-    value |= @intFromEnum(xcb.EventMask.KeyRelease);
-    value |= @intFromEnum(xcb.EventMask.ButtonPress);
-    value |= @intFromEnum(xcb.EventMask.ButtonRelease);
-    value |= @intFromEnum(xcb.EventMask.PointerMotion);
-    value |= @intFromEnum(xcb.EventMask.FocusChange);
-    value |= @intFromEnum(xcb.EventMask.EnterWindow);
-    value |= @intFromEnum(xcb.EventMask.LeaveWindow);
-    value |= @intFromEnum(xcb.EventMask.StructureNotify);
+    var value = @intFromEnum(Xcb.EventMask.KeyPress);
+    value |= @intFromEnum(Xcb.EventMask.KeyRelease);
+    value |= @intFromEnum(Xcb.EventMask.ButtonPress);
+    value |= @intFromEnum(Xcb.EventMask.ButtonRelease);
+    value |= @intFromEnum(Xcb.EventMask.PointerMotion);
+    value |= @intFromEnum(Xcb.EventMask.FocusChange);
+    value |= @intFromEnum(Xcb.EventMask.EnterWindow);
+    value |= @intFromEnum(Xcb.EventMask.LeaveWindow);
+    value |= @intFromEnum(Xcb.EventMask.StructureNotify);
 
-    _ = xcb.changeWindowAttributes(
+    _ = core.xcb.changeWindowAttributes(
         core.connection,
         self.window,
-        @intFromEnum(xcb.Cw.EventMask),
+        @intFromEnum(Xcb.Cw.EventMask),
         &[_]u32{value},
     );
 
-    _ = xcb.mapWindow(core.connection, self.window);
+    _ = core.xcb.mapWindow(core.connection, self.window);
 
     if (info.title) |t| self.setTitle(t);
 
@@ -59,17 +60,17 @@ pub fn init(core: *Core, info: types.WindowInfo) !*Window {
 }
 
 pub fn deinit(window: *Window) void {
-    xcb.destroyWindow(window.core.connection, window.window);
+    window.core.xcb.destroyWindow(window.core.connection, window.window);
     window.core.allocator.destroy(window);
 }
 
 pub fn setTitle(window: *Window, title: []const u8) void {
-    _ = xcb.changeProperty(
+    _ = window.core.xcb.changeProperty(
         window.core.connection,
         .Replace,
         window.window,
-        @intFromEnum(xcb.Defines.Atom.WmName),
-        @intFromEnum(xcb.Defines.Atom.String),
+        @intFromEnum(Xcb.Defines.Atom.WmName),
+        @intFromEnum(Xcb.Defines.Atom.String),
         @bitSizeOf(u8),
         @as(u32, @intCast(title.len)),
         @as(*const anyopaque, @ptrCast(title)),
@@ -78,10 +79,10 @@ pub fn setTitle(window: *Window, title: []const u8) void {
 
 pub fn setSize(window: *Window, width: u16, height: u16) void {
     const pair: [2]c_int = .{ width, height };
-    _ = xcb.configureWindow(
+    _ = window.core.xcb.configureWindow(
         window.core.connection,
         window.window,
-        @intFromEnum(xcb.Defines.Config.WindowWidth) | @intFromEnum(xcb.Defines.Config.WindowHeight),
+        @intFromEnum(Xcb.Defines.Config.WindowWidth) | @intFromEnum(Xcb.Defines.Config.WindowHeight),
         @as(*anyopaque, @ptrCast(@constCast(&pair))),
     );
     window.width = width;
@@ -89,8 +90,8 @@ pub fn setSize(window: *Window, width: u16, height: u16) void {
 }
 
 pub fn getSize(window: *Window) types.Dim {
-    const cookie = xcb.getGeometry(window.core.connection, window.window);
-    const reply = xcb.getGeometryReply(window.core.connection, cookie, null);
+    const cookie = window.core.xcb.getGeometry(window.core.connection, window.window);
+    const reply = window.core.xcb.getGeometryReply(window.core.connection, cookie, null);
     defer std.c.free(reply);
 
     return .{ .width = reply.width, .height = reply.height };
